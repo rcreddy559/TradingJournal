@@ -3,6 +3,8 @@ export type Segment = "OPTIONS";
 export type OptionType = "CE" | "PE";
 export type TradeStatus = "SUCCESSFUL" | "FAILED";
 export type StrategyTimeframe = "SCALPING" | "INTRADAY" | "POSITIONAL";
+export type TradeEmotion = "CALM" | "CONFIDENT" | "FEAR" | "GREED" | "REVENGE" | "FOMO" | "HESITANT";
+export type MistakeType = "NONE" | "OVERTRADING" | "REVENGE_TRADE" | "EARLY_EXIT" | "LATE_ENTRY" | "NO_STOP_LOSS" | "RULE_BREAK";
 
 export interface Strategy {
   id: string;
@@ -29,6 +31,13 @@ export interface Trade {
   strategyId: string;
   status: TradeStatus;
   notes?: string;
+  emotionBefore?: TradeEmotion;
+  emotionAfter?: TradeEmotion;
+  confidenceScore?: number;
+  mistakeType?: MistakeType;
+  entryReason?: string;
+  exitReason?: string;
+  lessonLearned?: string;
   createdAt: string;
   updatedAt: string;
 }

@@ -6,25 +6,39 @@ interface StrategiesPageProps {
   onCreate: (strategy: Strategy) => void;
 }
 
+const generateId = () => {
+  try {
+    if (typeof crypto !== "undefined" && crypto.randomUUID) {
+      return crypto.randomUUID();
+    }
+  } catch {
+    // Fallback
+  }
+  return Math.random().toString(36).substring(2, 11) + Date.now().toString(36);
+};
+
+const COMMON_OPTIONS_STRATEGIES: Array<Pick<Strategy, "name" | "timeframe" | "rules">> = [
+  { name: "Bull Call Spread", timeframe: "INTRADAY", rules: "Moderately bullish view; buy ATM/ITM call and sell higher strike OTM call in same expiry." },
+  { name: "Bull Put Spread", timeframe: "INTRADAY", rules: "Moderately bullish view; sell higher strike put and buy lower strike put for hedge." },
+  { name: "Bear Put Spread", timeframe: "INTRADAY", rules: "Moderately bearish view; buy higher strike put and sell lower strike put." },
+  { name: "Bear Call Spread", timeframe: "INTRADAY", rules: "Moderately bearish view; sell lower strike call and buy higher strike call." },
+  { name: "Long Straddle", timeframe: "INTRADAY", rules: "Expect big move in any direction; buy ATM call and ATM put of same expiry." },
+  { name: "Short Straddle", timeframe: "INTRADAY", rules: "Expect range-bound market; sell ATM call and ATM put with strict risk controls." },
+  { name: "Long Strangle", timeframe: "INTRADAY", rules: "Expect large volatility expansion; buy OTM call and OTM put." },
+  { name: "Short Strangle", timeframe: "INTRADAY", rules: "Expect low volatility/range; sell OTM call and OTM put with hedges." },
+  { name: "Iron Condor", timeframe: "INTRADAY", rules: "Range strategy; combine bull put spread + bear call spread with defined risk." },
+  { name: "Long Call Butterfly", timeframe: "INTRADAY", rules: "Neutral to low-volatility view around center strike; limited risk/reward strategy." }
+];
+
 export default function StrategiesPage({ strategies, onCreate }: StrategiesPageProps) {
   const [name, setName] = useState("");
   const [timeframe, setTimeframe] = useState<StrategyTimeframe>("INTRADAY");
   const [rules, setRules] = useState("");
+  const [importMessage, setImportMessage] = useState("");
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!name.trim()) return;
-
-    const generateId = () => {
-      try {
-        if (typeof crypto !== "undefined" && crypto.randomUUID) {
-          return crypto.randomUUID();
-        }
-      } catch {
-        // Fallback
-      }
-      return Math.random().toString(36).substring(2, 11) + Date.now().toString(36);
-    };
 
     onCreate({
       id: generateId(),
@@ -39,10 +53,35 @@ export default function StrategiesPage({ strategies, onCreate }: StrategiesPageP
     setTimeframe("INTRADAY");
   };
 
+  const handleAddCommonStrategies = () => {
+    const existing = new Set(strategies.map((strategy) => strategy.name.trim().toLowerCase()));
+    const toAdd = COMMON_OPTIONS_STRATEGIES.filter((strategy) => !existing.has(strategy.name.toLowerCase()));
+
+    toAdd.forEach((strategy) => {
+      onCreate({
+        id: generateId(),
+        name: strategy.name,
+        timeframe: strategy.timeframe,
+        rules: strategy.rules,
+        createdAt: new Date().toISOString()
+      });
+    });
+
+    if (toAdd.length === 0) {
+      setImportMessage("All common strategies are already added.");
+      return;
+    }
+    setImportMessage(`Added ${toAdd.length} common strategies.`);
+  };
+
   return (
     <section className="page">
       <h2>Strategies</h2>
       <form className="form-card" onSubmit={handleSubmit}>
+        <button type="button" className="secondary" onClick={handleAddCommonStrategies}>
+          Add Common Strategies (Web)
+        </button>
+        {importMessage && <p className="subtext">{importMessage}</p>}
         <label>
           Strategy Name
           <input value={name} onChange={(event) => setName(event.target.value)} placeholder="ORB Breakout" required />

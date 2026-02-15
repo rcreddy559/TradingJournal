@@ -18,7 +18,7 @@ import {
   saveSettings,
   updateTrade
 } from "./services/storage";
-import { AppSettings, Strategy, Trade } from "./types/trade";
+import { AppSettings, MistakeType, Strategy, Trade, TradeEmotion } from "./types/trade";
 import { exportTradesCsv, parseImportedTradesCsv } from "./utils/csv";
 
 export default function App() {
@@ -119,6 +119,8 @@ export default function App() {
 
     const strategyByName = new Map(strategies.map((strategy) => [strategy.name.toLowerCase(), strategy]));
     const importedStrategies: Strategy[] = [];
+    const emotionValues: TradeEmotion[] = ["CALM", "CONFIDENT", "FEAR", "GREED", "REVENGE", "FOMO", "HESITANT"];
+    const mistakeValues: MistakeType[] = ["NONE", "OVERTRADING", "REVENGE_TRADE", "EARLY_EXIT", "LATE_ENTRY", "NO_STOP_LOSS", "RULE_BREAK"];
 
     parsedTrades.forEach((row) => {
       const strategyName = row.strategyName.trim() || "Imported";
@@ -139,6 +141,15 @@ export default function App() {
     const importedTrades: Trade[] = parsedTrades.map((row) => {
       const strategyKey = row.strategyName.trim().toLowerCase();
       const strategy = strategyByName.get(strategyKey);
+      const emotionBefore = emotionValues.includes((row.emotionBefore ?? "") as TradeEmotion)
+        ? (row.emotionBefore as TradeEmotion)
+        : undefined;
+      const emotionAfter = emotionValues.includes((row.emotionAfter ?? "") as TradeEmotion)
+        ? (row.emotionAfter as TradeEmotion)
+        : undefined;
+      const mistakeType = mistakeValues.includes((row.mistakeType ?? "") as MistakeType)
+        ? (row.mistakeType as MistakeType)
+        : undefined;
 
       return {
         id: generateId(),
@@ -157,6 +168,13 @@ export default function App() {
         strategyId: strategy?.id ?? "",
         status: row.status,
         notes: row.notes,
+        emotionBefore,
+        emotionAfter,
+        confidenceScore: row.confidenceScore,
+        mistakeType,
+        entryReason: row.entryReason,
+        exitReason: row.exitReason,
+        lessonLearned: row.lessonLearned,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
       };

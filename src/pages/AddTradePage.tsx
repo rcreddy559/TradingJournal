@@ -1,5 +1,5 @@
 import { FormEvent, useEffect, useMemo, useState } from "react";
-import { AppSettings, Strategy, Trade } from "../types/trade";
+import { AppSettings, MistakeType, Strategy, Trade, TradeEmotion } from "../types/trade";
 import { calculateNetPnl, formatCurrency } from "../utils/calculations";
 
 interface AddTradePageProps {
@@ -12,24 +12,31 @@ interface AddTradePageProps {
   onCancelEdit: () => void;
 }
 
+const NOTES_MAX_LENGTH = 1000;
+
+const EMOTION_OPTIONS: TradeEmotion[] = ["CALM", "CONFIDENT", "FEAR", "GREED", "REVENGE", "FOMO", "HESITANT"];
+const MISTAKE_OPTIONS: MistakeType[] = ["NONE", "OVERTRADING", "REVENGE_TRADE", "EARLY_EXIT", "LATE_ENTRY", "NO_STOP_LOSS", "RULE_BREAK"];
+
+const QUICK_NOTE_TEMPLATES = [
+  "Entry aligned with trend and setup checklist.",
+  "Stop loss respected as per plan.",
+  "Exited early due to fear.",
+  "Overtrading signal: avoid next time.",
+  "Followed risk per trade and position sizing.",
+  "Lesson: wait for confirmation candle."
+];
+
 const toIsoFromDateTime = (date: string, time: string): string => {
   try {
     if (!date) return new Date().toISOString();
-    
-    // Ensure time has HH:mm or HH:mm:ss format. If empty, use start of day.
     const timeToUse = time && time.includes(":") ? time : "00:00:00";
-    
-    // Handle potential HH:mm format by adding :00 if needed
     const normalizedTime = timeToUse.split(":").length === 2 ? `${timeToUse}:00` : timeToUse;
-    
     const d = new Date(`${date}T${normalizedTime}`);
     if (isNaN(d.getTime())) {
-      console.warn("Invalid date produced, falling back to current time", { date, time });
       return new Date().toISOString();
     }
     return d.toISOString();
-  } catch (err) {
-    console.error("Error parsing date/time:", err);
+  } catch {
     return new Date().toISOString();
   }
 };
@@ -42,6 +49,24 @@ const toTimeInputValue = (iso: string): string => {
   return `${hh}:${mm}`;
 };
 
+const getCurrentTimeInputValue = (): string => {
+  const now = new Date();
+  const hh = String(now.getHours()).padStart(2, "0");
+  const mm = String(now.getMinutes()).padStart(2, "0");
+  return `${hh}:${mm}`;
+};
+
+const generateId = () => {
+  try {
+    if (typeof crypto !== "undefined" && crypto.randomUUID) {
+      return crypto.randomUUID();
+    }
+  } catch {
+    // Fallback
+  }
+  return Math.random().toString(36).substring(2, 11) + Date.now().toString(36);
+};
+
 export default function AddTradePage({ strategies, trades, settings, editingTrade, onCreate, onUpdate, onCancelEdit }: AddTradePageProps) {
   const nowDate = new Date().toISOString().slice(0, 10);
 
@@ -49,8 +74,8 @@ export default function AddTradePage({ strategies, trades, settings, editingTrad
   const [instrument, setInstrument] = useState<Trade["instrument"]>("BANKNIFTY");
   const [strikePrice, setStrikePrice] = useState("");
   const [optionType, setOptionType] = useState<Trade["optionType"]>("CE");
-  const [entryTime, setEntryTime] = useState("");
-  const [exitTime, setExitTime] = useState("");
+  const [entryTime, setEntryTime] = useState(getCurrentTimeInputValue);
+  const [exitTime, setExitTime] = useState(getCurrentTimeInputValue);
   const [buyPrice, setBuyPrice] = useState("");
   const [sellPrice, setSellPrice] = useState("");
   const [quantity, setQuantity] = useState("15");
@@ -58,6 +83,14 @@ export default function AddTradePage({ strategies, trades, settings, editingTrad
   const [strategyId, setStrategyId] = useState("");
   const [status, setStatus] = useState<Trade["status"]>("SUCCESSFUL");
   const [notes, setNotes] = useState("");
+
+  const [emotionBefore, setEmotionBefore] = useState<TradeEmotion>("CALM");
+  const [emotionAfter, setEmotionAfter] = useState<TradeEmotion>("CALM");
+  const [mistakeType, setMistakeType] = useState<MistakeType>("NONE");
+  const [confidenceScore, setConfidenceScore] = useState("3");
+  const [entryReason, setEntryReason] = useState("");
+  const [exitReason, setExitReason] = useState("");
+  const [lessonLearned, setLessonLearned] = useState("");
 
   useEffect(() => {
     if (!editingTrade) return;
@@ -75,6 +108,14 @@ export default function AddTradePage({ strategies, trades, settings, editingTrad
     setStrategyId(editingTrade.strategyId);
     setStatus(editingTrade.status);
     setNotes(editingTrade.notes ?? "");
+
+    setEmotionBefore(editingTrade.emotionBefore ?? "CALM");
+    setEmotionAfter(editingTrade.emotionAfter ?? "CALM");
+    setMistakeType(editingTrade.mistakeType ?? "NONE");
+    setConfidenceScore(String(editingTrade.confidenceScore ?? 3));
+    setEntryReason(editingTrade.entryReason ?? "");
+    setExitReason(editingTrade.exitReason ?? "");
+    setLessonLearned(editingTrade.lessonLearned ?? "");
   }, [editingTrade]);
 
   const pnlPreview = useMemo(() => {
@@ -113,8 +154,8 @@ export default function AddTradePage({ strategies, trades, settings, editingTrad
     setSellPrice("");
     setStrikePrice("");
     setNotes("");
-    setEntryTime("");
-    setExitTime("");
+    setEntryTime(getCurrentTimeInputValue());
+    setExitTime(getCurrentTimeInputValue());
     setQuantity("15");
     setCharges("0");
     setStatus("SUCCESSFUL");
@@ -122,17 +163,21 @@ export default function AddTradePage({ strategies, trades, settings, editingTrad
     setInstrument("BANKNIFTY");
     setStrategyId("");
     setTradeDate(nowDate);
+
+    setEmotionBefore("CALM");
+    setEmotionAfter("CALM");
+    setMistakeType("NONE");
+    setConfidenceScore("3");
+    setEntryReason("");
+    setExitReason("");
+    setLessonLearned("");
   };
 
-  const generateId = () => {
-    try {
-      if (typeof crypto !== "undefined" && crypto.randomUUID) {
-        return crypto.randomUUID();
-      }
-    } catch {
-      // Fallback
-    }
-    return Math.random().toString(36).substring(2, 11) + Date.now().toString(36);
+  const appendQuickNote = (snippet: string) => {
+    setNotes((prev) => {
+      const next = prev.trim().length > 0 ? `${prev}\n${snippet}` : snippet;
+      return next.slice(0, NOTES_MAX_LENGTH);
+    });
   };
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
@@ -141,6 +186,11 @@ export default function AddTradePage({ strategies, trades, settings, editingTrad
     try {
       if (!strategyId) {
         window.alert("Please select a strategy first.");
+        return;
+      }
+
+      if (notes.length > NOTES_MAX_LENGTH) {
+        window.alert(`Notes cannot exceed ${NOTES_MAX_LENGTH} characters.`);
         return;
       }
 
@@ -169,6 +219,13 @@ export default function AddTradePage({ strategies, trades, settings, editingTrad
         strategyId,
         status,
         notes: notes.trim(),
+        emotionBefore,
+        emotionAfter,
+        mistakeType,
+        confidenceScore: Number(confidenceScore || 0),
+        entryReason: entryReason.trim(),
+        exitReason: exitReason.trim(),
+        lessonLearned: lessonLearned.trim(),
         createdAt: editingTrade?.createdAt ?? new Date().toISOString(),
         updatedAt: new Date().toISOString()
       };
@@ -227,8 +284,59 @@ export default function AddTradePage({ strategies, trades, settings, editingTrad
             <option value="FAILED">Failed</option>
           </select>
         </label>
+
+        <label>Emotion Before Trade
+          <select value={emotionBefore} onChange={(event) => setEmotionBefore(event.target.value as TradeEmotion)}>
+            {EMOTION_OPTIONS.map((emotion) => (
+              <option key={emotion} value={emotion}>{emotion}</option>
+            ))}
+          </select>
+        </label>
+        <label>Emotion After Trade
+          <select value={emotionAfter} onChange={(event) => setEmotionAfter(event.target.value as TradeEmotion)}>
+            {EMOTION_OPTIONS.map((emotion) => (
+              <option key={emotion} value={emotion}>{emotion}</option>
+            ))}
+          </select>
+        </label>
+        <label>Mistake Type
+          <select value={mistakeType} onChange={(event) => setMistakeType(event.target.value as MistakeType)}>
+            {MISTAKE_OPTIONS.map((mistake) => (
+              <option key={mistake} value={mistake}>{mistake}</option>
+            ))}
+          </select>
+        </label>
+        <label>Confidence (1-5)
+          <input type="number" min={1} max={5} value={confidenceScore} onChange={(event) => setConfidenceScore(event.target.value)} />
+        </label>
+
+        <label className="full-width">Entry Reason
+          <textarea value={entryReason} onChange={(event) => setEntryReason(event.target.value)} rows={2} placeholder="Why did you enter this trade?" />
+        </label>
+        <label className="full-width">Exit Reason
+          <textarea value={exitReason} onChange={(event) => setExitReason(event.target.value)} rows={2} placeholder="Why did you exit this trade?" />
+        </label>
+        <label className="full-width">Lesson Learned
+          <textarea value={lessonLearned} onChange={(event) => setLessonLearned(event.target.value)} rows={2} placeholder="What will you improve next time?" />
+        </label>
+
+        <div className="full-width quick-note-row">
+          {QUICK_NOTE_TEMPLATES.map((snippet) => (
+            <button key={snippet} type="button" className="secondary" onClick={() => appendQuickNote(snippet)}>
+              + {snippet.slice(0, 20)}...
+            </button>
+          ))}
+        </div>
+
         <label className="full-width">Notes
-          <textarea value={notes} onChange={(event) => setNotes(event.target.value)} rows={4} placeholder="Why you took this trade, what worked, what failed" />
+          <textarea
+            value={notes}
+            onChange={(event) => setNotes(event.target.value.slice(0, NOTES_MAX_LENGTH))}
+            rows={4}
+            maxLength={NOTES_MAX_LENGTH}
+            placeholder="Write detailed context, execution quality, and market behavior"
+          />
+          <span className="char-counter">{notes.length}/{NOTES_MAX_LENGTH}</span>
         </label>
 
         <div className="pnl-preview">Calculated Net P&L: <strong className={pnlPreview >= 0 ? "profit" : "loss"}>{formatCurrency(pnlPreview)}</strong></div>

@@ -26,7 +26,14 @@ export const exportTradesCsv = (trades: Trade[], strategies: Strategy[], fileNam
     "netPnl",
     "strategy",
     "status",
-    "notes"
+    "notes",
+    "emotionBefore",
+    "emotionAfter",
+    "confidenceScore",
+    "mistakeType",
+    "entryReason",
+    "exitReason",
+    "lessonLearned"
   ];
 
   const rows = trades.map((trade) => [
@@ -44,7 +51,14 @@ export const exportTradesCsv = (trades: Trade[], strategies: Strategy[], fileNam
     trade.netPnl,
     strategyMap.get(trade.strategyId) ?? "Unknown",
     trade.status,
-    trade.notes ?? ""
+    trade.notes ?? "",
+    trade.emotionBefore ?? "",
+    trade.emotionAfter ?? "",
+    trade.confidenceScore ?? "",
+    trade.mistakeType ?? "",
+    trade.entryReason ?? "",
+    trade.exitReason ?? "",
+    trade.lessonLearned ?? ""
   ]);
 
   const csv = [headers, ...rows].map((row) => row.map(escapeCsv).join(",")).join("\n");
@@ -72,6 +86,13 @@ export interface ParsedImportTrade {
   strategyName: string;
   status: TradeStatus;
   notes?: string;
+  emotionBefore?: string;
+  emotionAfter?: string;
+  confidenceScore?: number;
+  mistakeType?: string;
+  entryReason?: string;
+  exitReason?: string;
+  lessonLearned?: string;
 }
 
 const parseCsvRows = (text: string): string[][] => {
@@ -176,6 +197,13 @@ export const parseImportedTradesCsv = (text: string): ParsedImportTrade[] => {
   const idxStrategy = index("strategy");
   const idxStatus = index("status");
   const idxNotes = index("notes");
+  const idxEmotionBefore = index("emotionBefore");
+  const idxEmotionAfter = index("emotionAfter");
+  const idxConfidenceScore = index("confidenceScore");
+  const idxMistakeType = index("mistakeType");
+  const idxEntryReason = index("entryReason");
+  const idxExitReason = index("exitReason");
+  const idxLessonLearned = index("lessonLearned");
 
   const requiredIndexes = [idxTradeDate, idxInstrument, idxBuy, idxSell, idxQty, idxStrategy];
   if (requiredIndexes.some((entry) => entry < 0)) return [];
@@ -209,7 +237,14 @@ export const parseImportedTradesCsv = (text: string): ParsedImportTrade[] => {
       netPnl: idxNet >= 0 && row[idxNet] ? toNumber(row[idxNet]) : (sellPrice - buyPrice) * quantity - charges,
       strategyName: row[idxStrategy] ?? "Imported",
       status: idxStatus >= 0 ? normalizeStatus(row[idxStatus]) : "FAILED",
-      notes: idxNotes >= 0 ? row[idxNotes] : ""
+      notes: idxNotes >= 0 ? row[idxNotes] : "",
+      emotionBefore: idxEmotionBefore >= 0 ? row[idxEmotionBefore] : "",
+      emotionAfter: idxEmotionAfter >= 0 ? row[idxEmotionAfter] : "",
+      confidenceScore: idxConfidenceScore >= 0 && row[idxConfidenceScore] ? toNumber(row[idxConfidenceScore]) : undefined,
+      mistakeType: idxMistakeType >= 0 ? row[idxMistakeType] : "",
+      entryReason: idxEntryReason >= 0 ? row[idxEntryReason] : "",
+      exitReason: idxExitReason >= 0 ? row[idxExitReason] : "",
+      lessonLearned: idxLessonLearned >= 0 ? row[idxLessonLearned] : ""
     });
   }
 

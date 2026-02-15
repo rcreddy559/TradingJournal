@@ -9,8 +9,8 @@ interface SidebarItem {
 
 const items: SidebarItem[] = [
   { key: "DASHBOARD", label: "Dashboard" },
-  { key: "ADD_TRADE", label: "Add Trade" },
   { key: "TRADES", label: "Trades" },
+  { key: "ADD_TRADE", label: "Add Trade" },
   { key: "STRATEGIES", label: "Strategies" },
   { key: "SETTINGS", label: "Settings" }
 ];
