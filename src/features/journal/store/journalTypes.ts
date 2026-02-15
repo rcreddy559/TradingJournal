@@ -1,0 +1,31 @@
+import { AppView } from "../../../shared/types/app";
+import { AppSettings, Strategy, Trade } from "../types/trade";
+
+export interface JournalState {
+  trades: Trade[];
+  strategies: Strategy[];
+  settings: AppSettings;
+  filters: {
+    startDate: string;
+    endDate: string;
+  };
+  ui: {
+    view: AppView;
+    editingTradeId: string | null;
+  };
+}
+
+export type JournalAction =
+  | { type: "SET_VIEW"; payload: AppView }
+  | { type: "SET_EDITING_TRADE_ID"; payload: string | null }
+  | { type: "SET_START_DATE"; payload: string }
+  | { type: "SET_END_DATE"; payload: string }
+  | { type: "ADD_TRADE"; payload: Trade }
+  | { type: "UPDATE_TRADE"; payload: Trade }
+  | { type: "DELETE_TRADE"; payload: string }
+  | { type: "ADD_STRATEGY"; payload: Strategy }
+  | { type: "SET_SETTINGS"; payload: AppSettings }
+  | {
+      type: "REPLACE_ALL_DATA";
+      payload: { trades: Trade[]; strategies: Strategy[] };
+    };
