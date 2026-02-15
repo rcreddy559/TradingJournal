@@ -314,6 +314,17 @@ tbody tr:hover {
   line-height: 1.45;
 }
 
+.trade-main-row td {
+  border-bottom: none;
+}
+
+.trade-notes-row td {
+  border-top: none;
+  background: rgba(12, 24, 33, 0.72);
+  padding-top: 0.35rem;
+  padding-bottom: 0.75rem;
+}
+
 .notes-main {
   display: grid;
   gap: 0.2rem;

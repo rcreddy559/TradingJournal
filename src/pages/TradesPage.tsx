@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { Fragment, useMemo, useState } from "react";
 import { Strategy, Trade } from "../types/trade";
 import { formatCurrency } from "../utils/calculations";
 
@@ -23,11 +23,20 @@ export default function TradesPage({
   onEditTrade,
   onDeleteTrade,
 }: TradesPageProps) {
+  const formatDateIndian = (dateValue: string): string => {
+    if (!dateValue) return "-";
+    const parts = dateValue.split("-");
+    if (parts.length !== 3) return dateValue;
+    const [year, month, day] = parts;
+    return `${day}/${month}/${year}`;
+  };
+
   const [activePreset, setActivePreset] = useState<
     "CUSTOM" | "DAY" | "WEEK" | "MONTH"
   >("CUSTOM");
   const [notesQuery, setNotesQuery] = useState("");
   const [mistakeOnly, setMistakeOnly] = useState(false);
+  const [dateSort, setDateSort] = useState<"DESC" | "ASC">("DESC");
   const strategyMap = useMemo(
     () => new Map(strategies.map((s) => [s.id, s.name])),
     [strategies],
@@ -66,7 +75,7 @@ export default function TradesPage({
   };
 
   const filteredTrades = useMemo(() => {
-    return trades.filter((trade) => {
+    const filtered = trades.filter((trade) => {
       const inStart = !startDate || trade.tradeDate >= startDate;
       const inEnd = !endDate || trade.tradeDate <= endDate;
       const query = notesQuery.trim().toLowerCase();
@@ -83,7 +92,15 @@ export default function TradesPage({
         !mistakeOnly || (trade.mistakeType && trade.mistakeType !== "NONE");
       return inStart && inEnd && matchesNotes && matchesMistake;
     });
-  }, [trades, startDate, endDate, notesQuery, mistakeOnly]);
+
+    filtered.sort((a, b) => {
+      const aTime = new Date(a.tradeDate).getTime();
+      const bTime = new Date(b.tradeDate).getTime();
+      return dateSort === "DESC" ? bTime - aTime : aTime - bTime;
+    });
+
+    return filtered;
+  }, [trades, startDate, endDate, notesQuery, mistakeOnly, dateSort]);
 
   const summary = useMemo(() => {
     const totalTrades = filteredTrades.length;
@@ -206,6 +223,18 @@ export default function TradesPage({
           />
           Show Mistake Trades Only
         </label>
+        <label>
+          Sort by Date
+          <select
+            value={dateSort}
+            onChange={(event) =>
+              setDateSort(event.target.value as "DESC" | "ASC")
+            }
+          >
+            <option value="DESC">Newest First</option>
+            <option value="ASC">Oldest First</option>
+          </select>
+        </label>
       </div>
 
       <div className="metrics-grid trades-summary-grid">
@@ -264,110 +293,113 @@ export default function TradesPage({
               <th>P&L</th>
               <th>Strategy</th>
               <th>Status</th>
-              <th>Notes</th>
               <th>Actions</th>
             </tr>
           </thead>
           <tbody>
             {filteredTrades.length === 0 && (
               <tr>
-                <td colSpan={11}>No trades for selected range.</td>
+                <td colSpan={10}>No trades for selected range.</td>
               </tr>
             )}
             {filteredTrades.map((trade) => (
-              <tr key={trade.id}>
-                <td>{trade.tradeDate}</td>
-                <td>{trade.instrument}</td>
-                <td>{trade.buyPrice}</td>
-                <td>{trade.sellPrice}</td>
-                <td>{trade.quantity}</td>
-                <td>{trade.charges}</td>
-                <td className={trade.netPnl >= 0 ? "profit" : "loss"}>
-                  {formatCurrency(trade.netPnl)}
-                </td>
-                <td>{strategyMap.get(trade.strategyId) ?? "Unknown"}</td>
-                <td>{trade.status}</td>
-                <td>
-                  <div className="notes-cell">
-                    <div className="notes-main">
-                      <span className="subtext">Notes:</span>
-                      <div className="notes-full">{trade.notes || "-"}</div>
+              <Fragment key={trade.id}>
+                <tr className="trade-main-row">
+                  <td>{formatDateIndian(trade.tradeDate)}</td>
+                  <td>{trade.instrument}</td>
+                  <td>{trade.buyPrice}</td>
+                  <td>{trade.sellPrice}</td>
+                  <td>{trade.quantity}</td>
+                  <td>{trade.charges}</td>
+                  <td className={trade.netPnl >= 0 ? "profit" : "loss"}>
+                    {formatCurrency(trade.netPnl)}
+                  </td>
+                  <td>{strategyMap.get(trade.strategyId) ?? "Unknown"}</td>
+                  <td>{trade.status}</td>
+                  <td>
+                    <div className="table-actions">
+                      <button
+                        type="button"
+                        className="secondary"
+                        onClick={() => onEditTrade(trade.id)}
+                      >
+                        Edit
+                      </button>
+                      <button
+                        type="button"
+                        className="danger"
+                        onClick={() => {
+                          if (
+                            window.confirm(
+                              "Delete this trade? This cannot be undone.",
+                            )
+                          ) {
+                            onDeleteTrade(trade.id);
+                          }
+                        }}
+                      >
+                        Delete
+                      </button>
                     </div>
-                    <div className="note-tags">
-                      {trade.mistakeType && trade.mistakeType !== "NONE" && (
-                        <span className="note-chip">
-                          Mistake: {trade.mistakeType}
-                        </span>
-                      )}
-                      {trade.emotionBefore && (
-                        <span className="note-chip">
-                          Before: {trade.emotionBefore}
-                        </span>
-                      )}
-                      {trade.emotionAfter && (
-                        <span className="note-chip">
-                          After: {trade.emotionAfter}
-                        </span>
-                      )}
-                      {!!trade.confidenceScore && (
-                        <span className="note-chip">
-                          Conf: {trade.confidenceScore}/5
-                        </span>
+                  </td>
+                </tr>
+                <tr className="trade-notes-row">
+                  <td colSpan={10}>
+                    <div className="notes-cell">
+                      <div className="notes-main">
+                        <span className="subtext">Notes:</span>
+                        <div className="notes-full">{trade.notes || "-"}</div>
+                      </div>
+                      <div className="note-tags">
+                        {trade.mistakeType && trade.mistakeType !== "NONE" && (
+                          <span className="note-chip">
+                            Mistake: {trade.mistakeType}
+                          </span>
+                        )}
+                        {trade.emotionBefore && (
+                          <span className="note-chip">
+                            Before: {trade.emotionBefore}
+                          </span>
+                        )}
+                        {trade.emotionAfter && (
+                          <span className="note-chip">
+                            After: {trade.emotionAfter}
+                          </span>
+                        )}
+                        {!!trade.confidenceScore && (
+                          <span className="note-chip">
+                            Conf: {trade.confidenceScore}/5
+                          </span>
+                        )}
+                      </div>
+                      {(trade.entryReason ||
+                        trade.exitReason ||
+                        trade.lessonLearned) && (
+                        <details>
+                          <summary className="subtext">
+                            View Journal Details
+                          </summary>
+                          {trade.entryReason && (
+                            <div className="subtext">
+                              Entry: {trade.entryReason}
+                            </div>
+                          )}
+                          {trade.exitReason && (
+                            <div className="subtext">
+                              Exit: {trade.exitReason}
+                            </div>
+                          )}
+                          {trade.lessonLearned && (
+                            <div className="subtext">
+                              Lesson: {trade.lessonLearned}
+                            </div>
+                          )}
+                        </details>
                       )}
                     </div>
-                    {(trade.entryReason ||
-                      trade.exitReason ||
-                      trade.lessonLearned) && (
-                      <details>
-                        <summary className="subtext">
-                          View Journal Details
-                        </summary>
-                        {trade.entryReason && (
-                          <div className="subtext">
-                            Entry: {trade.entryReason}
-                          </div>
-                        )}
-                        {trade.exitReason && (
-                          <div className="subtext">
-                            Exit: {trade.exitReason}
-                          </div>
-                        )}
-                        {trade.lessonLearned && (
-                          <div className="subtext">
-                            Lesson: {trade.lessonLearned}
-                          </div>
-                        )}
-                      </details>
-                    )}
-                  </div>
-                </td>
-                <td>
-                  <div className="table-actions">
-                    <button
-                      type="button"
-                      className="secondary"
-                      onClick={() => onEditTrade(trade.id)}
-                    >
-                      Edit
-                    </button>
-                    <button
-                      type="button"
-                      className="danger"
-                      onClick={() => {
-                        if (
-                          window.confirm(
-                            "Delete this trade? This cannot be undone.",
-                          )
-                        ) {
-                          onDeleteTrade(trade.id);
-                        }
-                      }}
-                    >
-                      Delete
-                    </button>
-                  </div>
-                </td>
-              </tr>
+                  </td>
+                </tr>
+              </Fragment>
             ))}
           </tbody>
         </table>
