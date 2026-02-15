@@ -37,14 +37,14 @@ export default function TradesPage({
   const [notesQuery, setNotesQuery] = useState("");
   const [mistakeOnly, setMistakeOnly] = useState(false);
   const [dateSort, setDateSort] = useState<"DESC" | "ASC">("DESC");
+
   const strategyMap = useMemo(
     () => new Map(strategies.map((s) => [s.id, s.name])),
     [strategies],
   );
 
-  const toDateInputValue = (date: Date): string => {
-    return date.toISOString().slice(0, 10);
-  };
+  const toDateInputValue = (date: Date): string =>
+    date.toISOString().slice(0, 10);
 
   const applyPreset = (preset: "DAY" | "WEEK" | "MONTH") => {
     const now = new Date();
@@ -154,6 +154,7 @@ export default function TradesPage({
   return (
     <section className="page">
       <h2>Trades</h2>
+
       <div className="filters-row">
         <div className="quick-filter-row">
           <button
@@ -184,6 +185,7 @@ export default function TradesPage({
             Month
           </button>
         </div>
+
         <label>
           Start Date
           <input
@@ -195,6 +197,7 @@ export default function TradesPage({
             }}
           />
         </label>
+
         <label>
           End Date
           <input
@@ -206,6 +209,7 @@ export default function TradesPage({
             }}
           />
         </label>
+
         <label>
           Notes Search
           <input
@@ -215,6 +219,7 @@ export default function TradesPage({
             placeholder="Search notes, entry, exit, lesson"
           />
         </label>
+
         <label className="checkbox-label">
           <input
             type="checkbox"
@@ -223,6 +228,7 @@ export default function TradesPage({
           />
           Show Mistake Trades Only
         </label>
+
         <label>
           Sort by Date
           <select
@@ -302,6 +308,7 @@ export default function TradesPage({
                 <td colSpan={10}>No trades for selected range.</td>
               </tr>
             )}
+
             {filteredTrades.map((trade) => (
               <Fragment key={trade.id}>
                 <tr className="trade-main-row">
@@ -343,6 +350,7 @@ export default function TradesPage({
                     </div>
                   </td>
                 </tr>
+
                 <tr className="trade-notes-row">
                   <td colSpan={10}>
                     <div className="notes-cell">
@@ -350,6 +358,7 @@ export default function TradesPage({
                         <span className="subtext">Notes:</span>
                         <div className="notes-full">{trade.notes || "-"}</div>
                       </div>
+
                       <div className="note-tags">
                         {trade.mistakeType && trade.mistakeType !== "NONE" && (
                           <span className="note-chip">
@@ -372,6 +381,7 @@ export default function TradesPage({
                           </span>
                         )}
                       </div>
+
                       {(trade.entryReason ||
                         trade.exitReason ||
                         trade.lessonLearned) && (
