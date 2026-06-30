@@ -1,10 +1,19 @@
 export type Instrument = "BANKNIFTY" | "NIFTY50" | "MCX_CRUDE";
 export type Segment = "OPTIONS";
 export type OptionType = "CE" | "PE";
+export type TradeSide = "BUY" | "SELL";
 export type TradeStatus = "SUCCESSFUL" | "FAILED";
 export type StrategyTimeframe = "SCALPING" | "INTRADAY" | "POSITIONAL";
-export type TradeEmotion = "CALM" | "CONFIDENT" | "FEAR" | "GREED" | "REVENGE" | "FOMO" | "HESITANT";
-export type MistakeType = "NONE" | "OVERTRADING" | "REVENGE_TRADE" | "EARLY_EXIT" | "LATE_ENTRY" | "NO_STOP_LOSS" | "RULE_BREAK";
+export type TradeEmotion =
+  "CALM" | "CONFIDENT" | "FEAR" | "GREED" | "REVENGE" | "FOMO" | "HESITANT";
+export type MistakeType =
+  | "NONE"
+  | "OVERTRADING"
+  | "REVENGE_TRADE"
+  | "EARLY_EXIT"
+  | "LATE_ENTRY"
+  | "NO_STOP_LOSS"
+  | "RULE_BREAK";
 
 export interface Strategy {
   id: string;
@@ -21,6 +30,7 @@ export interface Trade {
   segment: Segment;
   strikePrice?: number;
   optionType?: OptionType;
+  side?: TradeSide;
   entryTime: string;
   exitTime: string;
   buyPrice: number;

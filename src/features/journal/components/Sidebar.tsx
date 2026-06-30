@@ -11,21 +11,38 @@ const items: SidebarItem[] = [
   { key: "TRADES", label: "Trades" },
   { key: "ADD_TRADE", label: "Add Trade" },
   { key: "STRATEGIES", label: "Strategies" },
-  { key: "SETTINGS", label: "Settings" }
+  { key: "SETTINGS", label: "Settings" },
 ];
 
 interface SidebarProps {
   active: AppView;
   onChange: (view: AppView) => void;
+  userName: string;
+  onLogout: () => void;
   actions?: ReactNode;
 }
 
-export default function Sidebar({ active, onChange, actions }: SidebarProps) {
+const getInitials = (name: string): string => {
+  const parts = name
+    .trim()
+    .split(/[\s_.-]+/)
+    .filter(Boolean);
+  if (parts.length === 0) return "?";
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return (parts[0][0] + parts[1][0]).toUpperCase();
+};
+
+export default function Sidebar({
+  active,
+  onChange,
+  userName,
+  onLogout,
+  actions,
+}: SidebarProps) {
   const profile = {
-    name: "Journal Owner",
+    name: userName || "Journal Owner",
     role: "Day Trader",
-    initials: "JO",
-    status: "Active",
+    initials: getInitials(userName || "Journal Owner"),
   };
 
   return (
@@ -52,7 +69,14 @@ export default function Sidebar({ active, onChange, actions }: SidebarProps) {
             <strong>{profile.name}</strong>
             <span>{profile.role}</span>
           </div>
-          <span className="profile-status">{profile.status}</span>
+          <button
+            type="button"
+            className="logout-btn"
+            onClick={onLogout}
+            title="Log out"
+          >
+            Logout
+          </button>
         </div>
       </div>
     </aside>

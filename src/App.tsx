@@ -5,14 +5,33 @@ import DashboardPage from "./features/journal/pages/DashboardPage";
 import SettingsPage from "./features/journal/pages/SettingsPage";
 import StrategiesPage from "./features/journal/pages/StrategiesPage";
 import TradesPage from "./features/journal/pages/TradesPage";
+import { JournalProvider } from "./features/journal/store/journalContext";
 import {
   useJournalActions,
   useJournalSelectors,
   useJournalState,
 } from "./features/journal/store/hooks";
 import { exportTradesCsv } from "./features/journal/lib/csv";
+import { LoginModal, useAuth } from "./features/auth";
 
 export default function App() {
+  const { user } = useAuth();
+
+  if (!user) {
+    return <LoginModal />;
+  }
+
+  // Re-mount the journal when the active user changes so each user loads
+  // their own trades, strategies and settings.
+  return (
+    <JournalProvider key={user.username}>
+      <JournalShell />
+    </JournalProvider>
+  );
+}
+
+function JournalShell() {
+  const { user, logout } = useAuth();
   const { ui, strategies } = useJournalState();
   const { filteredTrades } = useJournalSelectors();
   const { setView, importTradesFromCsvText } = useJournalActions();
@@ -30,12 +49,16 @@ export default function App() {
     const result = importTradesFromCsvText(text);
 
     if (result.importedTrades === 0) {
-      window.alert("No valid rows found. Use CSV headers like tradeDate, instrument, buyPrice, sellPrice, quantity, strategy.");
+      window.alert(
+        "No valid rows found. Use CSV headers like tradeDate, instrument, buyPrice, sellPrice, quantity, strategy.",
+      );
       event.target.value = "";
       return;
     }
 
-    window.alert(`Imported ${result.importedTrades} trades and ${result.importedStrategies} new strategies.`);
+    window.alert(
+      `Imported ${result.importedTrades} trades and ${result.importedStrategies} new strategies.`,
+    );
     event.target.value = "";
   };
 
@@ -44,16 +67,28 @@ export default function App() {
       <Sidebar
         active={ui.view}
         onChange={setView}
+        userName={user?.username ?? ""}
+        onLogout={logout}
         actions={
           <div className="sidebar-button-group">
             <button
               type="button"
               className="export-btn"
-              onClick={() => exportTradesCsv(filteredTrades, strategies, "trading-journal-export.csv")}
+              onClick={() =>
+                exportTradesCsv(
+                  filteredTrades,
+                  strategies,
+                  "trading-journal-export.csv",
+                )
+              }
             >
               Export CSV
             </button>
-            <button type="button" className="export-btn" onClick={handleImportClick}>
+            <button
+              type="button"
+              className="export-btn"
+              onClick={handleImportClick}
+            >
               Import CSV
             </button>
             <input

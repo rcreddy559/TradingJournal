@@ -5,7 +5,7 @@ import {
   useJournalSelectors,
   useJournalState,
 } from "../store/hooks";
-import { MistakeType, Trade, TradeEmotion } from "../types/trade";
+import { MistakeType, Trade, TradeEmotion, TradeSide } from "../types/trade";
 import { calculateNetPnl, formatCurrency } from "../lib/calculations";
 import { generateId } from "../../../shared/lib/helpers";
 import {
@@ -51,9 +51,11 @@ export default function AddTradePage() {
   const nowDate = new Date().toISOString().slice(0, 10);
 
   const [tradeDate, setTradeDate] = useState(nowDate);
-  const [instrument, setInstrument] = useState<Trade["instrument"]>("BANKNIFTY");
+  const [instrument, setInstrument] =
+    useState<Trade["instrument"]>("BANKNIFTY");
   const [strikePrice, setStrikePrice] = useState("");
   const [optionType, setOptionType] = useState<Trade["optionType"]>("CE");
+  const [side, setSide] = useState<TradeSide>("BUY");
   const [entryTime, setEntryTime] = useState(getCurrentTimeInputValue);
   const [exitTime, setExitTime] = useState(getCurrentTimeInputValue);
   const [buyPrice, setBuyPrice] = useState("");
@@ -77,8 +79,11 @@ export default function AddTradePage() {
 
     setTradeDate(editingTrade.tradeDate);
     setInstrument(editingTrade.instrument);
-    setStrikePrice(editingTrade.strikePrice ? String(editingTrade.strikePrice) : "");
+    setStrikePrice(
+      editingTrade.strikePrice ? String(editingTrade.strikePrice) : "",
+    );
     setOptionType(editingTrade.optionType ?? "CE");
+    setSide(editingTrade.side ?? "BUY");
     setEntryTime(toTimeInputValue(editingTrade.entryTime));
     setExitTime(toTimeInputValue(editingTrade.exitTime));
     setBuyPrice(String(editingTrade.buyPrice));
@@ -118,7 +123,8 @@ export default function AddTradePage() {
     const currentEditingId = editingTrade?.id;
     const existingPnl = trades
       .filter(
-        (trade) => trade.tradeDate === tradeDate && trade.id !== currentEditingId,
+        (trade) =>
+          trade.tradeDate === tradeDate && trade.id !== currentEditingId,
       )
       .reduce((sum, trade) => sum + trade.netPnl, 0);
     return existingPnl + pnlPreview;
@@ -128,7 +134,9 @@ export default function AddTradePage() {
     const warnings: string[] = [];
 
     if (todayTradeCount + 1 > settings.maxTradesPerDay) {
-      warnings.push(`Max trades per day exceeded (${todayTradeCount + 1}/${settings.maxTradesPerDay}).`);
+      warnings.push(
+        `Max trades per day exceeded (${todayTradeCount + 1}/${settings.maxTradesPerDay}).`,
+      );
     }
 
     if (todayPnl < 0 && Math.abs(todayPnl) > settings.dailyLossLimit) {
@@ -138,7 +146,12 @@ export default function AddTradePage() {
     }
 
     return warnings;
-  }, [todayTradeCount, settings.maxTradesPerDay, settings.dailyLossLimit, todayPnl]);
+  }, [
+    todayTradeCount,
+    settings.maxTradesPerDay,
+    settings.dailyLossLimit,
+    todayPnl,
+  ]);
 
   const resetForm = () => {
     setBuyPrice("");
@@ -151,6 +164,7 @@ export default function AddTradePage() {
     setCharges("0");
     setStatus("SUCCESSFUL");
     setOptionType("CE");
+    setSide("BUY");
     setInstrument("BANKNIFTY");
     setStrategyId("");
     setTradeDate(nowDate);
@@ -185,7 +199,9 @@ export default function AddTradePage() {
     }
 
     if (riskWarnings.length > 0) {
-      const proceed = window.confirm(`${riskWarnings.join("\n")}\n\nDo you want to save this trade anyway?`);
+      const proceed = window.confirm(
+        `${riskWarnings.join("\n")}\n\nDo you want to save this trade anyway?`,
+      );
       if (!proceed) return;
     }
 
@@ -199,6 +215,7 @@ export default function AddTradePage() {
       segment: "OPTIONS",
       strikePrice: strikePrice ? Number(strikePrice) : undefined,
       optionType,
+      side,
       entryTime: entryDateTime,
       exitTime: exitDateTime,
       buyPrice: Number(buyPrice || 0),
@@ -233,17 +250,29 @@ export default function AddTradePage() {
     <section className="page">
       <h2>{editingTrade ? "Edit Trade" : "Add Trade"}</h2>
       {strategies.length === 0 && (
-        <p className="warning">Create at least one strategy before adding trades.</p>
+        <p className="warning">
+          Create at least one strategy before adding trades.
+        </p>
       )}
 
       <form className="form-grid" onSubmit={handleSubmit}>
         <label>
           Trade Date
-          <input type="date" value={tradeDate} onChange={(event) => setTradeDate(event.target.value)} required />
+          <input
+            type="date"
+            value={tradeDate}
+            onChange={(event) => setTradeDate(event.target.value)}
+            required
+          />
         </label>
         <label>
           Instrument
-          <select value={instrument} onChange={(event) => setInstrument(event.target.value as Trade["instrument"])}>
+          <select
+            value={instrument}
+            onChange={(event) =>
+              setInstrument(event.target.value as Trade["instrument"])
+            }
+          >
             <option value="BANKNIFTY">Bank Nifty</option>
             <option value="NIFTY50">Nifty 50</option>
             <option value="MCX_CRUDE">MCX Crude Oil</option>
@@ -251,51 +280,110 @@ export default function AddTradePage() {
         </label>
         <label>
           Strike Price
-          <input type="number" value={strikePrice} onChange={(event) => setStrikePrice(event.target.value)} placeholder="Optional" />
+          <input
+            type="number"
+            value={strikePrice}
+            onChange={(event) => setStrikePrice(event.target.value)}
+            placeholder="Optional"
+          />
         </label>
         <label>
           Option Type
-          <select value={optionType} onChange={(event) => setOptionType(event.target.value as Trade["optionType"])}>
+          <select
+            value={optionType}
+            onChange={(event) =>
+              setOptionType(event.target.value as Trade["optionType"])
+            }
+          >
             <option value="CE">CE</option>
             <option value="PE">PE</option>
           </select>
         </label>
         <label>
+          Buy / Sell
+          <select
+            value={side}
+            onChange={(event) => setSide(event.target.value as TradeSide)}
+          >
+            <option value="BUY">Buy</option>
+            <option value="SELL">Sell</option>
+          </select>
+        </label>
+        <label>
           Entry Time
-          <input type="time" value={entryTime} onChange={(event) => setEntryTime(event.target.value)} />
+          <input
+            type="time"
+            value={entryTime}
+            onChange={(event) => setEntryTime(event.target.value)}
+          />
         </label>
         <label>
           Exit Time
-          <input type="time" value={exitTime} onChange={(event) => setExitTime(event.target.value)} />
+          <input
+            type="time"
+            value={exitTime}
+            onChange={(event) => setExitTime(event.target.value)}
+          />
         </label>
         <label>
           Buy Price
-          <input type="number" step="0.01" value={buyPrice} onChange={(event) => setBuyPrice(event.target.value)} required />
+          <input
+            type="number"
+            step="0.01"
+            value={buyPrice}
+            onChange={(event) => setBuyPrice(event.target.value)}
+          />
         </label>
         <label>
           Sell Price
-          <input type="number" step="0.01" value={sellPrice} onChange={(event) => setSellPrice(event.target.value)} required />
+          <input
+            type="number"
+            step="0.01"
+            value={sellPrice}
+            onChange={(event) => setSellPrice(event.target.value)}
+          />
         </label>
         <label>
           Quantity
-          <input type="number" value={quantity} onChange={(event) => setQuantity(event.target.value)} required />
+          <input
+            type="number"
+            value={quantity}
+            onChange={(event) => setQuantity(event.target.value)}
+            required
+          />
         </label>
         <label>
           Charges
-          <input type="number" step="0.01" value={charges} onChange={(event) => setCharges(event.target.value)} />
+          <input
+            type="number"
+            step="0.01"
+            value={charges}
+            onChange={(event) => setCharges(event.target.value)}
+          />
         </label>
         <label>
           Strategy
-          <select value={strategyId} onChange={(event) => setStrategyId(event.target.value)} required>
+          <select
+            value={strategyId}
+            onChange={(event) => setStrategyId(event.target.value)}
+            required
+          >
             <option value="">Select strategy</option>
             {strategies.map((strategy) => (
-              <option key={strategy.id} value={strategy.id}>{strategy.name}</option>
+              <option key={strategy.id} value={strategy.id}>
+                {strategy.name}
+              </option>
             ))}
           </select>
         </label>
         <label>
           Status
-          <select value={status} onChange={(event) => setStatus(event.target.value as Trade["status"])}>
+          <select
+            value={status}
+            onChange={(event) =>
+              setStatus(event.target.value as Trade["status"])
+            }
+          >
             <option value="SUCCESSFUL">Successful</option>
             <option value="FAILED">Failed</option>
           </select>
@@ -303,49 +391,96 @@ export default function AddTradePage() {
 
         <label>
           Emotion Before Trade
-          <select value={emotionBefore} onChange={(event) => setEmotionBefore(event.target.value as TradeEmotion)}>
+          <select
+            value={emotionBefore}
+            onChange={(event) =>
+              setEmotionBefore(event.target.value as TradeEmotion)
+            }
+          >
             {EMOTION_OPTIONS.map((emotion) => (
-              <option key={emotion} value={emotion}>{emotion}</option>
+              <option key={emotion} value={emotion}>
+                {emotion}
+              </option>
             ))}
           </select>
         </label>
         <label>
           Emotion After Trade
-          <select value={emotionAfter} onChange={(event) => setEmotionAfter(event.target.value as TradeEmotion)}>
+          <select
+            value={emotionAfter}
+            onChange={(event) =>
+              setEmotionAfter(event.target.value as TradeEmotion)
+            }
+          >
             {EMOTION_OPTIONS.map((emotion) => (
-              <option key={emotion} value={emotion}>{emotion}</option>
+              <option key={emotion} value={emotion}>
+                {emotion}
+              </option>
             ))}
           </select>
         </label>
         <label>
           Mistake Type
-          <select value={mistakeType} onChange={(event) => setMistakeType(event.target.value as MistakeType)}>
+          <select
+            value={mistakeType}
+            onChange={(event) =>
+              setMistakeType(event.target.value as MistakeType)
+            }
+          >
             {MISTAKE_OPTIONS.map((mistake) => (
-              <option key={mistake} value={mistake}>{mistake}</option>
+              <option key={mistake} value={mistake}>
+                {mistake}
+              </option>
             ))}
           </select>
         </label>
         <label>
           Confidence (1-5)
-          <input type="number" min={1} max={5} value={confidenceScore} onChange={(event) => setConfidenceScore(event.target.value)} />
+          <input
+            type="number"
+            min={1}
+            max={5}
+            value={confidenceScore}
+            onChange={(event) => setConfidenceScore(event.target.value)}
+          />
         </label>
 
         <label className="full-width">
           Entry Reason
-          <textarea value={entryReason} onChange={(event) => setEntryReason(event.target.value)} rows={2} placeholder="Why did you enter this trade?" />
+          <textarea
+            value={entryReason}
+            onChange={(event) => setEntryReason(event.target.value)}
+            rows={2}
+            placeholder="Why did you enter this trade?"
+          />
         </label>
         <label className="full-width">
           Exit Reason
-          <textarea value={exitReason} onChange={(event) => setExitReason(event.target.value)} rows={2} placeholder="Why did you exit this trade?" />
+          <textarea
+            value={exitReason}
+            onChange={(event) => setExitReason(event.target.value)}
+            rows={2}
+            placeholder="Why did you exit this trade?"
+          />
         </label>
         <label className="full-width">
           Lesson Learned
-          <textarea value={lessonLearned} onChange={(event) => setLessonLearned(event.target.value)} rows={2} placeholder="What will you improve next time?" />
+          <textarea
+            value={lessonLearned}
+            onChange={(event) => setLessonLearned(event.target.value)}
+            rows={2}
+            placeholder="What will you improve next time?"
+          />
         </label>
 
         <div className="full-width quick-note-row">
           {QUICK_NOTE_TEMPLATES.map((snippet) => (
-            <button key={snippet} type="button" className="secondary" onClick={() => appendQuickNote(snippet)}>
+            <button
+              key={snippet}
+              type="button"
+              className="secondary"
+              onClick={() => appendQuickNote(snippet)}
+            >
               + {snippet.slice(0, 20)}...
             </button>
           ))}
@@ -355,16 +490,23 @@ export default function AddTradePage() {
           Notes
           <textarea
             value={notes}
-            onChange={(event) => setNotes(event.target.value.slice(0, NOTES_MAX_LENGTH))}
+            onChange={(event) =>
+              setNotes(event.target.value.slice(0, NOTES_MAX_LENGTH))
+            }
             rows={4}
             maxLength={NOTES_MAX_LENGTH}
             placeholder="Write detailed context, execution quality, and market behavior"
           />
-          <span className="char-counter">{notes.length}/{NOTES_MAX_LENGTH}</span>
+          <span className="char-counter">
+            {notes.length}/{NOTES_MAX_LENGTH}
+          </span>
         </label>
 
         <div className="pnl-preview">
-          Calculated Net P&L: <strong className={pnlPreview >= 0 ? "profit" : "loss"}>{formatCurrency(pnlPreview)}</strong>
+          Calculated Net P&L:{" "}
+          <strong className={pnlPreview >= 0 ? "profit" : "loss"}>
+            {formatCurrency(pnlPreview)}
+          </strong>
         </div>
         {riskWarnings.length > 0 && (
           <div className="risk-alert">
@@ -379,7 +521,11 @@ export default function AddTradePage() {
             {editingTrade ? "Update Trade" : "Save Trade"}
           </button>
           {editingTrade && (
-            <button type="button" className="secondary" onClick={cancelEditTrade}>
+            <button
+              type="button"
+              className="secondary"
+              onClick={cancelEditTrade}
+            >
               Cancel Edit
             </button>
           )}
