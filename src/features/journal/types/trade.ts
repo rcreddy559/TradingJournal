@@ -56,6 +56,26 @@ export interface Trade {
   updatedAt: string;
 }
 
+export type ExperienceLevel =
+  "BEGINNER" | "INTERMEDIATE" | "ADVANCED" | "PROFESSIONAL";
+
+export interface TraderProfile {
+  id: string;
+  fullName: string;
+  displayName: string;
+  email: string;
+  role: string;
+  bio: string;
+  broker: string;
+  baseCurrency: string;
+  tradingCapital: number;
+  riskPerTradePct: number;
+  experienceLevel: ExperienceLevel;
+  avatar?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface DateRangeFilter {
   startDate: string;
   endDate: string;

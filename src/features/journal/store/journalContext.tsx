@@ -1,4 +1,10 @@
-import { createContext, Dispatch, ReactNode, useContext, useReducer } from "react";
+import {
+  createContext,
+  Dispatch,
+  ReactNode,
+  useContext,
+  useReducer,
+} from "react";
 import { journalService } from "../api/journalService";
 import { JournalAction, JournalState } from "./journalTypes";
 import { journalReducer } from "./journalReducer";
@@ -12,6 +18,7 @@ const initialState: JournalState = {
   trades: [],
   strategies: [],
   settings: journalService.getSettings(),
+  profile: null,
   filters: {
     startDate: "",
     endDate: "",
@@ -28,14 +35,23 @@ const getInitialState = (): JournalState => {
     trades: journalService.getTrades(),
     strategies: journalService.getStrategies(),
     settings: journalService.getSettings(),
+    profile: journalService.getProfile(),
   };
 };
 
 const JournalContext = createContext<JournalContextValue | null>(null);
 
 export function JournalProvider({ children }: { children: ReactNode }) {
-  const [state, dispatch] = useReducer(journalReducer, undefined, getInitialState);
-  return <JournalContext.Provider value={{ state, dispatch }}>{children}</JournalContext.Provider>;
+  const [state, dispatch] = useReducer(
+    journalReducer,
+    undefined,
+    getInitialState,
+  );
+  return (
+    <JournalContext.Provider value={{ state, dispatch }}>
+      {children}
+    </JournalContext.Provider>
+  );
 }
 
 export const useJournalContext = (): JournalContextValue => {

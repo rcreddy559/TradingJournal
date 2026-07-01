@@ -1,10 +1,11 @@
 import { AppView } from "../../../shared/types/app";
-import { AppSettings, Strategy, Trade } from "../types/trade";
+import { AppSettings, Strategy, Trade, TraderProfile } from "../types/trade";
 
 export interface JournalState {
   trades: Trade[];
   strategies: Strategy[];
   settings: AppSettings;
+  profile: TraderProfile | null;
   filters: {
     startDate: string;
     endDate: string;
@@ -27,11 +28,14 @@ export type JournalAction =
   | { type: "UPDATE_STRATEGY"; payload: Strategy }
   | { type: "DELETE_STRATEGY"; payload: string }
   | { type: "SET_SETTINGS"; payload: AppSettings }
+  | { type: "SET_PROFILE"; payload: TraderProfile }
+  | { type: "DELETE_PROFILE" }
   | {
       type: "REPLACE_ALL_DATA";
       payload: {
         trades: Trade[];
         strategies: Strategy[];
         settings?: AppSettings;
+        profile?: TraderProfile | null;
       };
     };

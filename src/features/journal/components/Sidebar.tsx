@@ -14,6 +14,7 @@ const items: SidebarItem[] = [
   { key: "STRATEGIES", label: "Strategies" },
   { key: "STRATEGY_ANALYTICS", label: "Strategy Analytics" },
   { key: "PSYCHOLOGY", label: "Psychology" },
+  { key: "PROFILE", label: "Profile" },
   { key: "SETTINGS", label: "Settings" },
 ];
 
@@ -21,6 +22,9 @@ interface SidebarProps {
   active: AppView;
   onChange: (view: AppView) => void;
   userName: string;
+  profileName?: string;
+  profileRole?: string;
+  profileAvatar?: string;
   onLogout: () => void;
   actions?: ReactNode;
 }
@@ -39,14 +43,19 @@ export default function Sidebar({
   active,
   onChange,
   userName,
+  profileName,
+  profileRole,
+  profileAvatar,
   onLogout,
   actions,
 }: SidebarProps) {
   const { theme, toggleTheme } = useTheme();
+  const displayName = profileName?.trim() || userName || "Journal Owner";
   const profile = {
-    name: userName || "Journal Owner",
-    role: "Day Trader",
-    initials: getInitials(userName || "Journal Owner"),
+    name: displayName,
+    role: profileRole?.trim() || "Day Trader",
+    initials: getInitials(displayName),
+    avatar: profileAvatar,
   };
 
   return (
@@ -75,21 +84,42 @@ export default function Sidebar({
           {theme === "dark" ? "\u2600 Light Mode" : "\u263e Dark Mode"}
         </button>
         <div className="sidebar-actions">{actions}</div>
-        <div className="sidebar-profile">
-          <div className="profile-avatar">{profile.initials}</div>
+        <button
+          type="button"
+          className="sidebar-profile"
+          onClick={() => onChange("PROFILE")}
+          title="View profile"
+        >
+          <div className="profile-avatar">
+            {profile.avatar ? (
+              <img src={profile.avatar} alt={profile.name} />
+            ) : (
+              profile.initials
+            )}
+          </div>
           <div className="profile-meta">
             <strong>{profile.name}</strong>
             <span>{profile.role}</span>
           </div>
-          <button
-            type="button"
+          <span
+            role="button"
+            tabIndex={0}
             className="logout-btn"
-            onClick={onLogout}
+            onClick={(event) => {
+              event.stopPropagation();
+              onLogout();
+            }}
+            onKeyDown={(event) => {
+              if (event.key === "Enter" || event.key === " ") {
+                event.stopPropagation();
+                onLogout();
+              }
+            }}
             title="Log out"
           >
             Logout
-          </button>
-        </div>
+          </span>
+        </button>
       </div>
     </aside>
   );

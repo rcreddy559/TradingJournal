@@ -47,12 +47,9 @@ export default function AddTradePage() {
   const { strategies, trades, settings } = useJournalState();
   const { editingTrade } = useJournalSelectors();
   const { createTrade, updateTrade, cancelEditTrade } = useJournalActions();
-
   const nowDate = new Date().toISOString().slice(0, 10);
-
   const [tradeDate, setTradeDate] = useState(nowDate);
-  const [instrument, setInstrument] =
-    useState<Trade["instrument"]>("BANKNIFTY");
+  const [instrument, setInstrument] = useState<Trade["instrument"]>("NIFTY50");
   const [strikePrice, setStrikePrice] = useState("");
   const [optionType, setOptionType] = useState<Trade["optionType"]>("CE");
   const [side, setSide] = useState<TradeSide>("BUY");
@@ -137,6 +134,12 @@ export default function AddTradePage() {
       ratio: reward > 0 ? reward / risk : 0,
     };
   }, [buyPrice, stopLoss, target]);
+
+  const selectedStrategyRules = useMemo(() => {
+    return (
+      strategies.find((strategy) => strategy.id === strategyId)?.rules ?? ""
+    );
+  }, [strategies, strategyId]);
 
   const todayTradeCount = useMemo(() => {
     const currentEditingId = editingTrade?.id;
@@ -320,8 +323,8 @@ export default function AddTradePage() {
               setInstrument(event.target.value as Trade["instrument"])
             }
           >
-            <option value="BANKNIFTY">Bank Nifty</option>
             <option value="NIFTY50">Nifty 50</option>
+            <option value="BANKNIFTY">Bank Nifty</option>
             <option value="MCX_CRUDE">MCX Crude Oil</option>
           </select>
         </label>
@@ -437,11 +440,18 @@ export default function AddTradePage() {
           >
             <option value="">Select strategy</option>
             {strategies.map((strategy) => (
-              <option key={strategy.id} value={strategy.id}>
+              <option
+                key={strategy.id}
+                value={strategy.id}
+                title={strategy.rules}
+              >
                 {strategy.name}
               </option>
             ))}
           </select>
+          {selectedStrategyRules && (
+            <span className="subtext">{selectedStrategyRules}</span>
+          )}
         </label>
         <label>
           Status

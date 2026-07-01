@@ -7,6 +7,7 @@ import {
   Strategy,
   Trade,
   TradeEmotion,
+  TraderProfile,
 } from "../types/trade";
 import { parseImportedTradesCsv } from "../lib/csv";
 import { applyTradeFilters } from "../lib/filters";
@@ -132,6 +133,18 @@ export const useJournalActions = () => {
     dispatch({ type: "SET_SETTINGS", payload: normalized });
   };
 
+  /** Creates or updates the trader profile (upsert). */
+  const saveProfile = (profile: TraderProfile) => {
+    journalService.saveProfile(profile);
+    dispatch({ type: "SET_PROFILE", payload: profile });
+  };
+
+  /** Removes the trader profile and reverts the sidebar to defaults. */
+  const deleteProfile = () => {
+    journalService.deleteProfile();
+    dispatch({ type: "DELETE_PROFILE" });
+  };
+
   /** Replaces the entire journal from a validated backup file. */
   const restoreBackup = (backup: ParsedBackup) => {
     const settings = backup.settings
@@ -148,12 +161,26 @@ export const useJournalActions = () => {
     journalService.saveTrades(backup.trades);
     journalService.saveStrategies(backup.strategies);
     journalService.saveSettings(settings);
+
+    // Only overwrite the profile when the backup actually carries one, so an
+    // older backup without a profile leaves the current profile untouched.
+    const nextProfile =
+      backup.profile !== undefined ? backup.profile : state.profile;
+    if (backup.profile !== undefined) {
+      if (backup.profile) {
+        journalService.saveProfile(backup.profile);
+      } else {
+        journalService.deleteProfile();
+      }
+    }
+
     dispatch({
       type: "REPLACE_ALL_DATA",
       payload: {
         trades: backup.trades,
         strategies: backup.strategies,
         settings,
+        profile: nextProfile,
       },
     });
     dispatch({ type: "SET_VIEW", payload: "DASHBOARD" });
@@ -285,6 +312,8 @@ export const useJournalActions = () => {
     deleteStrategy,
     deleteStrategyWithReassign,
     saveSettings,
+    saveProfile,
+    deleteProfile,
     restoreBackup,
     importTradesFromCsvText,
   };

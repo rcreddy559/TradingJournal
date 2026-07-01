@@ -1,9 +1,10 @@
 import { journalDb } from "../db/journalDb";
-import { AppSettings, Strategy, Trade } from "../types/trade";
+import { AppSettings, Strategy, Trade, TraderProfile } from "../types/trade";
 
 const TRADES_KEY = "trading-journal-trades-v1";
 const STRATEGIES_KEY = "trading-journal-strategies-v1";
 const SETTINGS_KEY = "trading-journal-settings-v1";
+const PROFILE_KEY = "trading-journal-profile-v1";
 
 export const DEFAULT_SETTINGS: AppSettings = {
   dailyLossLimit: 5000,
@@ -161,6 +162,18 @@ const saveSettings = (settings: AppSettings): void => {
   journalDb.write(SETTINGS_KEY, normalizeSettings(settings));
 };
 
+const getProfile = (): TraderProfile | null => {
+  return journalDb.read<TraderProfile | null>(PROFILE_KEY, null);
+};
+
+const saveProfile = (profile: TraderProfile): void => {
+  journalDb.write(PROFILE_KEY, profile);
+};
+
+const deleteProfile = (): void => {
+  journalDb.write<TraderProfile | null>(PROFILE_KEY, null);
+};
+
 export const journalService = {
   getTrades,
   saveTrades,
@@ -168,4 +181,7 @@ export const journalService = {
   saveStrategies,
   getSettings,
   saveSettings,
+  getProfile,
+  saveProfile,
+  deleteProfile,
 };

@@ -66,12 +66,26 @@ export const journalReducer = (
         ...state,
         settings: action.payload,
       };
+    case "SET_PROFILE":
+      return {
+        ...state,
+        profile: action.payload,
+      };
+    case "DELETE_PROFILE":
+      return {
+        ...state,
+        profile: null,
+      };
     case "REPLACE_ALL_DATA":
       return {
         ...state,
         trades: action.payload.trades,
         strategies: action.payload.strategies,
         settings: action.payload.settings ?? state.settings,
+        profile:
+          action.payload.profile !== undefined
+            ? action.payload.profile
+            : state.profile,
       };
     default:
       return state;

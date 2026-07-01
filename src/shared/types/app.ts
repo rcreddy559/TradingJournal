@@ -5,6 +5,7 @@ export type AppView =
   | "STRATEGIES"
   | "STRATEGY_ANALYTICS"
   | "PSYCHOLOGY"
+  | "PROFILE"
   | "SETTINGS";
 
 export type ThemeMode = "dark" | "light";

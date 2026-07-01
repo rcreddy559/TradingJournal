@@ -6,6 +6,7 @@ import SettingsPage from "./features/journal/pages/SettingsPage";
 import StrategiesPage from "./features/journal/pages/StrategiesPage";
 import StrategyAnalyticsPage from "./features/journal/pages/StrategyAnalyticsPage";
 import PsychologyPage from "./features/journal/pages/PsychologyPage";
+import ProfilePage from "./features/journal/pages/ProfilePage";
 import TradesPage from "./features/journal/pages/TradesPage";
 import { JournalProvider } from "./features/journal/store/journalContext";
 import {
@@ -35,7 +36,7 @@ export default function App() {
 
 function JournalShell() {
   const { user, logout } = useAuth();
-  const { ui, strategies } = useJournalState();
+  const { ui, strategies, profile } = useJournalState();
   const { filteredTrades } = useJournalSelectors();
   const { setView, importTradesFromCsvText } = useJournalActions();
   const { notify } = useToast();
@@ -74,6 +75,9 @@ function JournalShell() {
         active={ui.view}
         onChange={setView}
         userName={user?.username ?? ""}
+        profileName={profile?.displayName}
+        profileRole={profile?.role}
+        profileAvatar={profile?.avatar}
         onLogout={logout}
         actions={
           <div className="sidebar-button-group">
@@ -115,6 +119,7 @@ function JournalShell() {
         {ui.view === "STRATEGIES" && <StrategiesPage />}
         {ui.view === "STRATEGY_ANALYTICS" && <StrategyAnalyticsPage />}
         {ui.view === "PSYCHOLOGY" && <PsychologyPage />}
+        {ui.view === "PROFILE" && <ProfilePage />}
         {ui.view === "SETTINGS" && <SettingsPage />}
       </main>
     </div>
