@@ -24,7 +24,18 @@ Chrome-first day trading journal app for Bank Nifty, Nifty 50, and MCX Crude opt
   - Lesson learned
 - Trades list notes displayed in second line per trade row (full-width)
 - Notes search and mistake-only filter
+- Strategy, instrument, and status filters on the Trades page
 - Common strategy quick-add button in Strategies page
+- Stop loss / target capture with automatic R-multiple and risk:reward preview
+- Per-trade tags and chart screenshot attachment
+- Strategy Analytics (win rate, expectancy, profit factor, avg R per strategy)
+- Psychology & Mistakes analytics (P&L grouped by emotion and mistake type)
+- Equity curve and daily P&L calendar on the dashboard
+- Full JSON backup and restore (lossless) in Settings
+- Light / dark theme toggle, in-app toasts and modal confirmations
+- Installable PWA with offline app shell
+
+See `.github/FEATURES.md` for the full feature catalogue and backlog.
 
 ## Local Run
 
@@ -38,6 +49,15 @@ npm run dev
 ```bash
 npm run build
 ```
+
+## Tests
+
+```bash
+npm run test
+```
+
+> Note: this project pins `vite@8` while `@vitejs/plugin-react` currently peers
+> on `vite<=7`, so install dev dependencies with `npm install --legacy-peer-deps`.
 
 ## Storage
 

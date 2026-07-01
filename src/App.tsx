@@ -4,6 +4,8 @@ import AddTradePage from "./features/journal/pages/AddTradePage";
 import DashboardPage from "./features/journal/pages/DashboardPage";
 import SettingsPage from "./features/journal/pages/SettingsPage";
 import StrategiesPage from "./features/journal/pages/StrategiesPage";
+import StrategyAnalyticsPage from "./features/journal/pages/StrategyAnalyticsPage";
+import PsychologyPage from "./features/journal/pages/PsychologyPage";
 import TradesPage from "./features/journal/pages/TradesPage";
 import { JournalProvider } from "./features/journal/store/journalContext";
 import {
@@ -13,6 +15,7 @@ import {
 } from "./features/journal/store/hooks";
 import { exportTradesCsv } from "./features/journal/lib/csv";
 import { LoginModal, useAuth } from "./features/auth";
+import { useToast } from "./shared/ui";
 
 export default function App() {
   const { user } = useAuth();
@@ -35,6 +38,7 @@ function JournalShell() {
   const { ui, strategies } = useJournalState();
   const { filteredTrades } = useJournalSelectors();
   const { setView, importTradesFromCsvText } = useJournalActions();
+  const { notify } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleImportClick = () => {
@@ -49,15 +53,17 @@ function JournalShell() {
     const result = importTradesFromCsvText(text);
 
     if (result.importedTrades === 0) {
-      window.alert(
-        "No valid rows found. Use CSV headers like tradeDate, instrument, buyPrice, sellPrice, quantity, strategy.",
+      notify(
+        "No valid rows found. Use headers like tradeDate, instrument, buyPrice, sellPrice, quantity, strategy.",
+        "error",
       );
       event.target.value = "";
       return;
     }
 
-    window.alert(
+    notify(
       `Imported ${result.importedTrades} trades and ${result.importedStrategies} new strategies.`,
+      "success",
     );
     event.target.value = "";
   };
@@ -107,6 +113,8 @@ function JournalShell() {
         {ui.view === "ADD_TRADE" && <AddTradePage />}
         {ui.view === "TRADES" && <TradesPage />}
         {ui.view === "STRATEGIES" && <StrategiesPage />}
+        {ui.view === "STRATEGY_ANALYTICS" && <StrategyAnalyticsPage />}
+        {ui.view === "PSYCHOLOGY" && <PsychologyPage />}
         {ui.view === "SETTINGS" && <SettingsPage />}
       </main>
     </div>

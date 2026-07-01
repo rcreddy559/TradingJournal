@@ -47,6 +47,20 @@ export const journalReducer = (
         ...state,
         strategies: [action.payload, ...state.strategies],
       };
+    case "UPDATE_STRATEGY":
+      return {
+        ...state,
+        strategies: state.strategies.map((strategy) =>
+          strategy.id === action.payload.id ? action.payload : strategy,
+        ),
+      };
+    case "DELETE_STRATEGY":
+      return {
+        ...state,
+        strategies: state.strategies.filter(
+          (strategy) => strategy.id !== action.payload,
+        ),
+      };
     case "SET_SETTINGS":
       return {
         ...state,
@@ -57,9 +71,9 @@ export const journalReducer = (
         ...state,
         trades: action.payload.trades,
         strategies: action.payload.strategies,
+        settings: action.payload.settings ?? state.settings,
       };
     default:
       return state;
   }
 };
-

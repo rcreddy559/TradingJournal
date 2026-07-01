@@ -1,10 +1,15 @@
 import { Fragment, useMemo, useState } from "react";
 import { useJournalActions, useJournalState } from "../store/hooks";
-import { formatCurrency } from "../lib/calculations";
+import { calculateRMultiple, formatCurrency } from "../lib/calculations";
+import { applyTradeFilters } from "../lib/filters";
+import { Instrument, TradeStatus } from "../types/trade";
+import { useConfirm } from "../../../shared/ui";
 
 export default function TradesPage() {
   const { trades, strategies, filters } = useJournalState();
-  const { setStartDate, setEndDate, startEditTrade, deleteTrade } = useJournalActions();
+  const { setStartDate, setEndDate, startEditTrade, deleteTrade } =
+    useJournalActions();
+  const confirm = useConfirm();
   const { startDate, endDate } = filters;
   const formatDateIndian = (dateValue: string): string => {
     if (!dateValue) return "-";
@@ -20,6 +25,11 @@ export default function TradesPage() {
   const [notesQuery, setNotesQuery] = useState("");
   const [mistakeOnly, setMistakeOnly] = useState(false);
   const [dateSort, setDateSort] = useState<"DESC" | "ASC">("DESC");
+  const [strategyFilter, setStrategyFilter] = useState("");
+  const [instrumentFilter, setInstrumentFilter] = useState<Instrument | "ALL">(
+    "ALL",
+  );
+  const [statusFilter, setStatusFilter] = useState<TradeStatus | "ALL">("ALL");
 
   const strategyMap = useMemo(
     () => new Map(strategies.map((s) => [s.id, s.name])),
@@ -58,22 +68,14 @@ export default function TradesPage() {
   };
 
   const filteredTrades = useMemo(() => {
-    const filtered = trades.filter((trade) => {
-      const inStart = !startDate || trade.tradeDate >= startDate;
-      const inEnd = !endDate || trade.tradeDate <= endDate;
-      const query = notesQuery.trim().toLowerCase();
-      const notesText = [
-        trade.notes ?? "",
-        trade.entryReason ?? "",
-        trade.exitReason ?? "",
-        trade.lessonLearned ?? "",
-      ]
-        .join(" ")
-        .toLowerCase();
-      const matchesNotes = !query || notesText.includes(query);
-      const matchesMistake =
-        !mistakeOnly || (trade.mistakeType && trade.mistakeType !== "NONE");
-      return inStart && inEnd && matchesNotes && matchesMistake;
+    const filtered = applyTradeFilters(trades, {
+      startDate,
+      endDate,
+      notesQuery,
+      mistakeOnly,
+      strategyId: strategyFilter || undefined,
+      instrument: instrumentFilter,
+      status: statusFilter,
     });
 
     filtered.sort((a, b) => {
@@ -83,7 +85,17 @@ export default function TradesPage() {
     });
 
     return filtered;
-  }, [trades, startDate, endDate, notesQuery, mistakeOnly, dateSort]);
+  }, [
+    trades,
+    startDate,
+    endDate,
+    notesQuery,
+    mistakeOnly,
+    strategyFilter,
+    instrumentFilter,
+    statusFilter,
+    dateSort,
+  ]);
 
   const summary = useMemo(() => {
     const totalTrades = filteredTrades.length;
@@ -213,6 +225,50 @@ export default function TradesPage() {
         </label>
 
         <label>
+          Strategy
+          <select
+            value={strategyFilter}
+            onChange={(event) => setStrategyFilter(event.target.value)}
+          >
+            <option value="">All Strategies</option>
+            {strategies.map((strategy) => (
+              <option key={strategy.id} value={strategy.id}>
+                {strategy.name}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <label>
+          Instrument
+          <select
+            value={instrumentFilter}
+            onChange={(event) =>
+              setInstrumentFilter(event.target.value as Instrument | "ALL")
+            }
+          >
+            <option value="ALL">All Instruments</option>
+            <option value="BANKNIFTY">Bank Nifty</option>
+            <option value="NIFTY50">Nifty 50</option>
+            <option value="MCX_CRUDE">MCX Crude Oil</option>
+          </select>
+        </label>
+
+        <label>
+          Status
+          <select
+            value={statusFilter}
+            onChange={(event) =>
+              setStatusFilter(event.target.value as TradeStatus | "ALL")
+            }
+          >
+            <option value="ALL">All Statuses</option>
+            <option value="SUCCESSFUL">Successful</option>
+            <option value="FAILED">Failed</option>
+          </select>
+        </label>
+
+        <label>
           Sort by Date
           <select
             value={dateSort}
@@ -280,6 +336,7 @@ export default function TradesPage() {
               <th>Qty</th>
               <th>Charges</th>
               <th>P&L</th>
+              <th>R</th>
               <th>Strategy</th>
               <th>Status</th>
               <th>Actions</th>
@@ -288,7 +345,7 @@ export default function TradesPage() {
           <tbody>
             {filteredTrades.length === 0 && (
               <tr>
-                <td colSpan={10}>No trades for selected range.</td>
+                <td colSpan={11}>No trades for selected range.</td>
               </tr>
             )}
 
@@ -304,7 +361,13 @@ export default function TradesPage() {
                   <td className={trade.netPnl >= 0 ? "profit" : "loss"}>
                     {formatCurrency(trade.netPnl)}
                   </td>
-                  <td>{strategyMap.get(trade.strategyId) ?? "Unknown"}</td>
+                  <td>
+                    {(() => {
+                      const r = calculateRMultiple(trade);
+                      return r === null ? "-" : `${r.toFixed(2)}R`;
+                    })()}
+                  </td>
+                  <td>{strategyMap.get(trade.strategyId) ?? "Unassigned"}</td>
                   <td>{trade.status}</td>
                   <td>
                     <div className="table-actions">
@@ -318,14 +381,15 @@ export default function TradesPage() {
                       <button
                         type="button"
                         className="danger"
-                        onClick={() => {
-                          if (
-                            window.confirm(
+                        onClick={async () => {
+                          const ok = await confirm({
+                            title: "Delete trade",
+                            message:
                               "Delete this trade? This cannot be undone.",
-                            )
-                          ) {
-                            deleteTrade(trade.id);
-                          }
+                            confirmLabel: "Delete",
+                            danger: true,
+                          });
+                          if (ok) deleteTrade(trade.id);
                         }}
                       >
                         Delete
@@ -335,7 +399,7 @@ export default function TradesPage() {
                 </tr>
 
                 <tr className="trade-notes-row">
-                  <td colSpan={10}>
+                  <td colSpan={11}>
                     <div className="notes-cell">
                       <div className="notes-main">
                         <span className="subtext">Notes:</span>
@@ -363,6 +427,11 @@ export default function TradesPage() {
                             Conf: {trade.confidenceScore}/5
                           </span>
                         )}
+                        {(trade.tags ?? []).map((tag) => (
+                          <span key={tag} className="note-chip tag-chip">
+                            #{tag}
+                          </span>
+                        ))}
                       </div>
 
                       {(trade.entryReason ||

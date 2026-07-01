@@ -1,5 +1,6 @@
 import { ReactNode } from "react";
 import { AppView } from "../../../shared/types/app";
+import { useTheme } from "../../../shared/ui";
 
 interface SidebarItem {
   key: AppView;
@@ -11,6 +12,8 @@ const items: SidebarItem[] = [
   { key: "TRADES", label: "Trades" },
   { key: "ADD_TRADE", label: "Add Trade" },
   { key: "STRATEGIES", label: "Strategies" },
+  { key: "STRATEGY_ANALYTICS", label: "Strategy Analytics" },
+  { key: "PSYCHOLOGY", label: "Psychology" },
   { key: "SETTINGS", label: "Settings" },
 ];
 
@@ -39,6 +42,7 @@ export default function Sidebar({
   onLogout,
   actions,
 }: SidebarProps) {
+  const { theme, toggleTheme } = useTheme();
   const profile = {
     name: userName || "Journal Owner",
     role: "Day Trader",
@@ -62,6 +66,14 @@ export default function Sidebar({
         ))}
       </nav>
       <div className="sidebar-bottom">
+        <button
+          type="button"
+          className="nav-btn theme-toggle"
+          onClick={toggleTheme}
+          title="Toggle color theme"
+        >
+          {theme === "dark" ? "\u2600 Light Mode" : "\u263e Dark Mode"}
+        </button>
         <div className="sidebar-actions">{actions}</div>
         <div className="sidebar-profile">
           <div className="profile-avatar">{profile.initials}</div>

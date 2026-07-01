@@ -24,8 +24,14 @@ export type JournalAction =
   | { type: "UPDATE_TRADE"; payload: Trade }
   | { type: "DELETE_TRADE"; payload: string }
   | { type: "ADD_STRATEGY"; payload: Strategy }
+  | { type: "UPDATE_STRATEGY"; payload: Strategy }
+  | { type: "DELETE_STRATEGY"; payload: string }
   | { type: "SET_SETTINGS"; payload: AppSettings }
   | {
       type: "REPLACE_ALL_DATA";
-      payload: { trades: Trade[]; strategies: Strategy[] };
+      payload: {
+        trades: Trade[];
+        strategies: Strategy[];
+        settings?: AppSettings;
+      };
     };

@@ -38,6 +38,10 @@ export interface Trade {
   quantity: number;
   charges: number;
   netPnl: number;
+  stopLoss?: number;
+  target?: number;
+  tags?: string[];
+  screenshot?: string;
   strategyId: string;
   status: TradeStatus;
   notes?: string;

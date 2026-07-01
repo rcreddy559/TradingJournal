@@ -62,6 +62,10 @@ export default function AddTradePage() {
   const [sellPrice, setSellPrice] = useState("");
   const [quantity, setQuantity] = useState("15");
   const [charges, setCharges] = useState("0");
+  const [stopLoss, setStopLoss] = useState("");
+  const [target, setTarget] = useState("");
+  const [tags, setTags] = useState("");
+  const [screenshot, setScreenshot] = useState("");
   const [strategyId, setStrategyId] = useState("");
   const [status, setStatus] = useState<Trade["status"]>("SUCCESSFUL");
   const [notes, setNotes] = useState("");
@@ -90,6 +94,14 @@ export default function AddTradePage() {
     setSellPrice(String(editingTrade.sellPrice));
     setQuantity(String(editingTrade.quantity));
     setCharges(String(editingTrade.charges));
+    setStopLoss(
+      editingTrade.stopLoss !== undefined ? String(editingTrade.stopLoss) : "",
+    );
+    setTarget(
+      editingTrade.target !== undefined ? String(editingTrade.target) : "",
+    );
+    setTags((editingTrade.tags ?? []).join(", "));
+    setScreenshot(editingTrade.screenshot ?? "");
     setStrategyId(editingTrade.strategyId);
     setStatus(editingTrade.status);
     setNotes(editingTrade.notes ?? "");
@@ -111,6 +123,20 @@ export default function AddTradePage() {
       Number(charges || 0),
     );
   }, [buyPrice, sellPrice, quantity, charges]);
+
+  const riskReward = useMemo(() => {
+    const entry = Number(buyPrice || 0);
+    const stop = Number(stopLoss || 0);
+    const goal = Number(target || 0);
+    if (!entry || !stop || stop >= entry) return null;
+    const risk = entry - stop;
+    const reward = goal > entry ? goal - entry : 0;
+    return {
+      risk,
+      reward,
+      ratio: reward > 0 ? reward / risk : 0,
+    };
+  }, [buyPrice, stopLoss, target]);
 
   const todayTradeCount = useMemo(() => {
     const currentEditingId = editingTrade?.id;
@@ -162,6 +188,10 @@ export default function AddTradePage() {
     setExitTime(getCurrentTimeInputValue());
     setQuantity("15");
     setCharges("0");
+    setStopLoss("");
+    setTarget("");
+    setTags("");
+    setScreenshot("");
     setStatus("SUCCESSFUL");
     setOptionType("CE");
     setSide("BUY");
@@ -183,6 +213,16 @@ export default function AddTradePage() {
       const next = prev.trim().length > 0 ? `${prev}\n${snippet}` : snippet;
       return next.slice(0, NOTES_MAX_LENGTH);
     });
+  };
+
+  const handleScreenshot = (file: File | undefined) => {
+    if (!file) {
+      setScreenshot("");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => setScreenshot(String(reader.result ?? ""));
+    reader.readAsDataURL(file);
   };
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
@@ -223,6 +263,13 @@ export default function AddTradePage() {
       quantity: Number(quantity || 0),
       charges: Number(charges || 0),
       netPnl: pnlPreview,
+      stopLoss: stopLoss ? Number(stopLoss) : undefined,
+      target: target ? Number(target) : undefined,
+      tags: tags
+        .split(",")
+        .map((tag) => tag.trim())
+        .filter(Boolean),
+      screenshot: screenshot || undefined,
       strategyId,
       status,
       notes: notes.trim(),
@@ -362,6 +409,26 @@ export default function AddTradePage() {
           />
         </label>
         <label>
+          Stop Loss
+          <input
+            type="number"
+            step="0.01"
+            value={stopLoss}
+            onChange={(event) => setStopLoss(event.target.value)}
+            placeholder="For R-multiple"
+          />
+        </label>
+        <label>
+          Target
+          <input
+            type="number"
+            step="0.01"
+            value={target}
+            onChange={(event) => setTarget(event.target.value)}
+            placeholder="Planned target"
+          />
+        </label>
+        <label>
           Strategy
           <select
             value={strategyId}
@@ -473,6 +540,30 @@ export default function AddTradePage() {
           />
         </label>
 
+        <label className="full-width">
+          Tags (comma separated)
+          <input
+            value={tags}
+            onChange={(event) => setTags(event.target.value)}
+            placeholder="breakout, morning, high-conviction"
+          />
+        </label>
+        <label className="full-width">
+          Chart Screenshot
+          <input
+            type="file"
+            accept="image/*"
+            onChange={(event) => handleScreenshot(event.target.files?.[0])}
+          />
+          {screenshot && (
+            <img
+              src={screenshot}
+              alt="Trade chart"
+              className="screenshot-preview"
+            />
+          )}
+        </label>
+
         <div className="full-width quick-note-row">
           {QUICK_NOTE_TEMPLATES.map((snippet) => (
             <button
@@ -507,6 +598,17 @@ export default function AddTradePage() {
           <strong className={pnlPreview >= 0 ? "profit" : "loss"}>
             {formatCurrency(pnlPreview)}
           </strong>
+          {riskReward && (
+            <span className="rr-preview">
+              {" "}
+              | Planned R:R{" "}
+              <strong>
+                {riskReward.ratio > 0
+                  ? `1 : ${riskReward.ratio.toFixed(2)}`
+                  : "set a target"}
+              </strong>
+            </span>
+          )}
         </div>
         {riskWarnings.length > 0 && (
           <div className="risk-alert">

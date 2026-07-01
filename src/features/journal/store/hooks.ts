@@ -9,6 +9,8 @@ import {
   TradeEmotion,
 } from "../types/trade";
 import { parseImportedTradesCsv } from "../lib/csv";
+import { applyTradeFilters } from "../lib/filters";
+import { ParsedBackup } from "../lib/backup";
 import { generateId } from "../../../shared/lib/helpers";
 import { useJournalContext } from "./journalContext";
 
@@ -49,7 +51,9 @@ export const useJournalActions = () => {
   };
 
   const updateTrade = (trade: Trade) => {
-    const nextTrades = state.trades.map((item) => (item.id === trade.id ? trade : item));
+    const nextTrades = state.trades.map((item) =>
+      item.id === trade.id ? trade : item,
+    );
     journalService.saveTrades(nextTrades);
     dispatch({ type: "UPDATE_TRADE", payload: trade });
     dispatch({ type: "SET_VIEW", payload: "TRADES" });
@@ -71,6 +75,50 @@ export const useJournalActions = () => {
     dispatch({ type: "ADD_STRATEGY", payload: strategy });
   };
 
+  const updateStrategy = (strategy: Strategy) => {
+    const nextStrategies = state.strategies.map((item) =>
+      item.id === strategy.id ? strategy : item,
+    );
+    journalService.saveStrategies(nextStrategies);
+    dispatch({ type: "UPDATE_STRATEGY", payload: strategy });
+  };
+
+  const deleteStrategy = (strategyId: string) => {
+    const nextStrategies = state.strategies.filter(
+      (strategy) => strategy.id !== strategyId,
+    );
+    journalService.saveStrategies(nextStrategies);
+    dispatch({ type: "DELETE_STRATEGY", payload: strategyId });
+  };
+
+  /**
+   * Deletes a strategy and reassigns its trades. When `reassignToId` is null the
+   * trades keep their data but become unassigned (empty strategyId).
+   */
+  const deleteStrategyWithReassign = (
+    strategyId: string,
+    reassignToId: string | null,
+  ) => {
+    const nextStrategies = state.strategies.filter(
+      (strategy) => strategy.id !== strategyId,
+    );
+    const nextTrades = state.trades.map((trade) =>
+      trade.strategyId === strategyId
+        ? {
+            ...trade,
+            strategyId: reassignToId ?? "",
+            updatedAt: new Date().toISOString(),
+          }
+        : trade,
+    );
+    journalService.saveStrategies(nextStrategies);
+    journalService.saveTrades(nextTrades);
+    dispatch({
+      type: "REPLACE_ALL_DATA",
+      payload: { trades: nextTrades, strategies: nextStrategies },
+    });
+  };
+
   const saveSettings = (settings: AppSettings) => {
     const normalized: AppSettings = {
       dailyLossLimit: Number.isFinite(settings.dailyLossLimit)
@@ -84,14 +132,46 @@ export const useJournalActions = () => {
     dispatch({ type: "SET_SETTINGS", payload: normalized });
   };
 
-  const importTradesFromCsvText = (text: string): { importedTrades: number; importedStrategies: number } => {
+  /** Replaces the entire journal from a validated backup file. */
+  const restoreBackup = (backup: ParsedBackup) => {
+    const settings = backup.settings
+      ? {
+          dailyLossLimit: Number.isFinite(backup.settings.dailyLossLimit)
+            ? backup.settings.dailyLossLimit
+            : DEFAULT_SETTINGS.dailyLossLimit,
+          maxTradesPerDay: Number.isFinite(backup.settings.maxTradesPerDay)
+            ? backup.settings.maxTradesPerDay
+            : DEFAULT_SETTINGS.maxTradesPerDay,
+        }
+      : state.settings;
+
+    journalService.saveTrades(backup.trades);
+    journalService.saveStrategies(backup.strategies);
+    journalService.saveSettings(settings);
+    dispatch({
+      type: "REPLACE_ALL_DATA",
+      payload: {
+        trades: backup.trades,
+        strategies: backup.strategies,
+        settings,
+      },
+    });
+    dispatch({ type: "SET_VIEW", payload: "DASHBOARD" });
+  };
+
+  const importTradesFromCsvText = (
+    text: string,
+  ): { importedTrades: number; importedStrategies: number } => {
     const parsedTrades = parseImportedTradesCsv(text);
     if (parsedTrades.length === 0) {
       return { importedTrades: 0, importedStrategies: 0 };
     }
 
     const strategyByName = new Map(
-      state.strategies.map((strategy) => [strategy.name.toLowerCase(), strategy]),
+      state.strategies.map((strategy) => [
+        strategy.name.toLowerCase(),
+        strategy,
+      ]),
     );
     const importedStrategies: Strategy[] = [];
     const emotionValues: TradeEmotion[] = [
@@ -131,13 +211,19 @@ export const useJournalActions = () => {
     const importedTrades: Trade[] = parsedTrades.map((row) => {
       const strategyKey = row.strategyName.trim().toLowerCase();
       const strategy = strategyByName.get(strategyKey);
-      const emotionBefore = emotionValues.includes((row.emotionBefore ?? "") as TradeEmotion)
+      const emotionBefore = emotionValues.includes(
+        (row.emotionBefore ?? "") as TradeEmotion,
+      )
         ? (row.emotionBefore as TradeEmotion)
         : undefined;
-      const emotionAfter = emotionValues.includes((row.emotionAfter ?? "") as TradeEmotion)
+      const emotionAfter = emotionValues.includes(
+        (row.emotionAfter ?? "") as TradeEmotion,
+      )
         ? (row.emotionAfter as TradeEmotion)
         : undefined;
-      const mistakeType = mistakeValues.includes((row.mistakeType ?? "") as MistakeType)
+      const mistakeType = mistakeValues.includes(
+        (row.mistakeType ?? "") as MistakeType,
+      )
         ? (row.mistakeType as MistakeType)
         : undefined;
 
@@ -195,7 +281,11 @@ export const useJournalActions = () => {
     updateTrade,
     deleteTrade,
     createStrategy,
+    updateStrategy,
+    deleteStrategy,
+    deleteStrategyWithReassign,
     saveSettings,
+    restoreBackup,
     importTradesFromCsvText,
   };
 };
@@ -204,16 +294,17 @@ export const useJournalSelectors = () => {
   const state = useJournalState();
 
   const filteredTrades = useMemo(() => {
-    return state.trades.filter((trade) => {
-      const inStart = !state.filters.startDate || trade.tradeDate >= state.filters.startDate;
-      const inEnd = !state.filters.endDate || trade.tradeDate <= state.filters.endDate;
-      return inStart && inEnd;
+    return applyTradeFilters(state.trades, {
+      startDate: state.filters.startDate,
+      endDate: state.filters.endDate,
     });
   }, [state.trades, state.filters.startDate, state.filters.endDate]);
 
   const editingTrade = useMemo(() => {
     if (!state.ui.editingTradeId) return null;
-    return state.trades.find((trade) => trade.id === state.ui.editingTradeId) ?? null;
+    return (
+      state.trades.find((trade) => trade.id === state.ui.editingTradeId) ?? null
+    );
   }, [state.trades, state.ui.editingTradeId]);
 
   return {
