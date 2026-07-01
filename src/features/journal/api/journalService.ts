@@ -1,8 +1,15 @@
 import { journalDb } from "../db/journalDb";
-import { AppSettings, Strategy, Trade, TraderProfile } from "../types/trade";
+import {
+  AppSettings,
+  InstrumentDef,
+  Strategy,
+  Trade,
+  TraderProfile,
+} from "../types/trade";
 
 const TRADES_KEY = "trading-journal-trades-v1";
 const STRATEGIES_KEY = "trading-journal-strategies-v1";
+const INSTRUMENTS_KEY = "trading-journal-instruments-v1";
 const SETTINGS_KEY = "trading-journal-settings-v1";
 const PROFILE_KEY = "trading-journal-profile-v1";
 
@@ -10,6 +17,27 @@ export const DEFAULT_SETTINGS: AppSettings = {
   dailyLossLimit: 5000,
   maxTradesPerDay: 5,
 };
+
+export const DEFAULT_INSTRUMENTS: InstrumentDef[] = [
+  {
+    id: "instrument-banknifty",
+    symbol: "BANKNIFTY",
+    name: "Bank Nifty",
+    createdAt: "2024-01-01T00:00:00.000Z",
+  },
+  {
+    id: "instrument-nifty50",
+    symbol: "NIFTY50",
+    name: "Nifty 50",
+    createdAt: "2024-01-01T00:00:00.000Z",
+  },
+  {
+    id: "instrument-mcx-crude",
+    symbol: "MCX_CRUDE",
+    name: "MCX Crude Oil",
+    createdAt: "2024-01-01T00:00:00.000Z",
+  },
+];
 
 export const DEFAULT_STRATEGIES: Strategy[] = [
   {
@@ -152,6 +180,16 @@ const saveStrategies = (strategies: Strategy[]): void => {
   journalDb.write(STRATEGIES_KEY, strategies);
 };
 
+const getInstruments = (): InstrumentDef[] => {
+  const stored = journalDb.read<InstrumentDef[] | null>(INSTRUMENTS_KEY, null);
+  if (!stored || stored.length === 0) return DEFAULT_INSTRUMENTS;
+  return stored;
+};
+
+const saveInstruments = (instruments: InstrumentDef[]): void => {
+  journalDb.write(INSTRUMENTS_KEY, instruments);
+};
+
 const getSettings = (): AppSettings => {
   const settings = journalDb.read<AppSettings | null>(SETTINGS_KEY, null);
   if (!settings) return DEFAULT_SETTINGS;
@@ -179,6 +217,8 @@ export const journalService = {
   saveTrades,
   getStrategies,
   saveStrategies,
+  getInstruments,
+  saveInstruments,
   getSettings,
   saveSettings,
   getProfile,

@@ -4,7 +4,8 @@ import { buildBackup, downloadBackup, parseBackup } from "../lib/backup";
 import { useConfirm, useToast } from "../../../shared/ui";
 
 export default function SettingsPage() {
-  const { settings, trades, strategies, profile } = useJournalState();
+  const { settings, trades, strategies, profile, instruments } =
+    useJournalState();
   const { saveSettings, restoreBackup } = useJournalActions();
   const { notify } = useToast();
   const confirm = useConfirm();
@@ -32,7 +33,13 @@ export default function SettingsPage() {
   };
 
   const handleBackupExport = () => {
-    const backup = buildBackup(trades, strategies, settings, profile);
+    const backup = buildBackup(
+      trades,
+      strategies,
+      instruments,
+      settings,
+      profile,
+    );
     const stamp = new Date().toISOString().slice(0, 10);
     downloadBackup(backup, `trading-journal-backup-${stamp}.json`);
     notify("Backup downloaded.", "success");

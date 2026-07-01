@@ -1,15 +1,31 @@
-import { Instrument, OptionType, Strategy, Trade, TradeStatus } from "../types/trade";
+import {
+  Instrument,
+  OptionType,
+  Strategy,
+  Trade,
+  TradeStatus,
+} from "../types/trade";
 
 const escapeCsv = (value: string | number): string => {
   const stringValue = String(value ?? "");
-  if (stringValue.includes(",") || stringValue.includes("\n") || stringValue.includes('"')) {
+  if (
+    stringValue.includes(",") ||
+    stringValue.includes("\n") ||
+    stringValue.includes('"')
+  ) {
     return `"${stringValue.replace(/"/g, '""')}"`;
   }
   return stringValue;
 };
 
-export const exportTradesCsv = (trades: Trade[], strategies: Strategy[], fileName = "trading-journal.csv"): void => {
-  const strategyMap = new Map(strategies.map((strategy) => [strategy.id, strategy.name]));
+export const exportTradesCsv = (
+  trades: Trade[],
+  strategies: Strategy[],
+  fileName = "trading-journal.csv",
+): void => {
+  const strategyMap = new Map(
+    strategies.map((strategy) => [strategy.id, strategy.name]),
+  );
 
   const headers = [
     "tradeDate",
@@ -33,7 +49,7 @@ export const exportTradesCsv = (trades: Trade[], strategies: Strategy[], fileNam
     "mistakeType",
     "entryReason",
     "exitReason",
-    "lessonLearned"
+    "lessonLearned",
   ];
 
   const rows = trades.map((trade) => [
@@ -58,10 +74,12 @@ export const exportTradesCsv = (trades: Trade[], strategies: Strategy[], fileNam
     trade.mistakeType ?? "",
     trade.entryReason ?? "",
     trade.exitReason ?? "",
-    trade.lessonLearned ?? ""
+    trade.lessonLearned ?? "",
   ]);
 
-  const csv = [headers, ...rows].map((row) => row.map(escapeCsv).join(",")).join("\n");
+  const csv = [headers, ...rows]
+    .map((row) => row.map(escapeCsv).join(","))
+    .join("\n");
 
   const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
   const link = document.createElement("a");
@@ -158,10 +176,13 @@ const toNumber = (value: string, fallback = 0): number => {
 
 const normalizeInstrument = (value: string): Instrument | null => {
   const upper = value.trim().toUpperCase();
+  if (!upper) return null;
   if (["BANKNIFTY", "BANK NIFTY"].includes(upper)) return "BANKNIFTY";
   if (["NIFTY50", "NIFTY 50", "NIFTY"].includes(upper)) return "NIFTY50";
-  if (["MCX_CRUDE", "MCX CRUDE", "CRUDE", "CRUDEOIL"].includes(upper)) return "MCX_CRUDE";
-  return null;
+  if (["MCX_CRUDE", "MCX CRUDE", "CRUDE", "CRUDEOIL"].includes(upper))
+    return "MCX_CRUDE";
+  // Instruments are user-managed, so preserve any other non-empty symbol.
+  return upper.replace(/[^A-Z0-9]+/g, "_").replace(/^_+|_+$/g, "") || null;
 };
 
 const normalizeOptionType = (value: string): OptionType | undefined => {
@@ -181,7 +202,8 @@ export const parseImportedTradesCsv = (text: string): ParsedImportTrade[] => {
   if (rows.length < 2) return [];
 
   const headers = rows[0].map((header) => header.trim());
-  const index = (name: string) => headers.findIndex((header) => header.toLowerCase() === name.toLowerCase());
+  const index = (name: string) =>
+    headers.findIndex((header) => header.toLowerCase() === name.toLowerCase());
 
   const idxTradeDate = index("tradeDate");
   const idxInstrument = index("instrument");
@@ -205,7 +227,14 @@ export const parseImportedTradesCsv = (text: string): ParsedImportTrade[] => {
   const idxExitReason = index("exitReason");
   const idxLessonLearned = index("lessonLearned");
 
-  const requiredIndexes = [idxTradeDate, idxInstrument, idxBuy, idxSell, idxQty, idxStrategy];
+  const requiredIndexes = [
+    idxTradeDate,
+    idxInstrument,
+    idxBuy,
+    idxSell,
+    idxQty,
+    idxStrategy,
+  ];
   if (requiredIndexes.some((entry) => entry < 0)) return [];
 
   const output: ParsedImportTrade[] = [];
@@ -226,25 +255,41 @@ export const parseImportedTradesCsv = (text: string): ParsedImportTrade[] => {
     output.push({
       tradeDate,
       instrument,
-      strikePrice: idxStrike >= 0 && row[idxStrike] ? toNumber(row[idxStrike]) : undefined,
-      optionType: idxOptionType >= 0 ? normalizeOptionType(row[idxOptionType]) : undefined,
-      entryTime: idxEntryTime >= 0 && row[idxEntryTime] ? row[idxEntryTime] : new Date(`${tradeDate}T00:00:00`).toISOString(),
-      exitTime: idxExitTime >= 0 && row[idxExitTime] ? row[idxExitTime] : new Date(`${tradeDate}T00:00:00`).toISOString(),
+      strikePrice:
+        idxStrike >= 0 && row[idxStrike] ? toNumber(row[idxStrike]) : undefined,
+      optionType:
+        idxOptionType >= 0
+          ? normalizeOptionType(row[idxOptionType])
+          : undefined,
+      entryTime:
+        idxEntryTime >= 0 && row[idxEntryTime]
+          ? row[idxEntryTime]
+          : new Date(`${tradeDate}T00:00:00`).toISOString(),
+      exitTime:
+        idxExitTime >= 0 && row[idxExitTime]
+          ? row[idxExitTime]
+          : new Date(`${tradeDate}T00:00:00`).toISOString(),
       buyPrice,
       sellPrice,
       quantity,
       charges,
-      netPnl: idxNet >= 0 && row[idxNet] ? toNumber(row[idxNet]) : (sellPrice - buyPrice) * quantity - charges,
+      netPnl:
+        idxNet >= 0 && row[idxNet]
+          ? toNumber(row[idxNet])
+          : (sellPrice - buyPrice) * quantity - charges,
       strategyName: row[idxStrategy] ?? "Imported",
       status: idxStatus >= 0 ? normalizeStatus(row[idxStatus]) : "FAILED",
       notes: idxNotes >= 0 ? row[idxNotes] : "",
       emotionBefore: idxEmotionBefore >= 0 ? row[idxEmotionBefore] : "",
       emotionAfter: idxEmotionAfter >= 0 ? row[idxEmotionAfter] : "",
-      confidenceScore: idxConfidenceScore >= 0 && row[idxConfidenceScore] ? toNumber(row[idxConfidenceScore]) : undefined,
+      confidenceScore:
+        idxConfidenceScore >= 0 && row[idxConfidenceScore]
+          ? toNumber(row[idxConfidenceScore])
+          : undefined,
       mistakeType: idxMistakeType >= 0 ? row[idxMistakeType] : "",
       entryReason: idxEntryReason >= 0 ? row[idxEntryReason] : "",
       exitReason: idxExitReason >= 0 ? row[idxExitReason] : "",
-      lessonLearned: idxLessonLearned >= 0 ? row[idxLessonLearned] : ""
+      lessonLearned: idxLessonLearned >= 0 ? row[idxLessonLearned] : "",
     });
   }
 

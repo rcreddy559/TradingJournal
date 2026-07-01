@@ -6,6 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "ext:icons": "node scripts/generate-extension-icons.mjs",
+    "build:extension": "npm run ext:icons && npm run build",
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest"

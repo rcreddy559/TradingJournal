@@ -7,6 +7,7 @@ Chrome-first day trading journal app for Bank Nifty, Nifty 50, and MCX Crude opt
 - Add, edit, and delete trades
 - Save data in browser localStorage (no database)
 - Strategy tagging
+- User-managed instruments (add/edit/delete symbols inline from the Add Trade form)
 - Dashboard metrics
 - Date-range trade filtering (`Start Date`, `End Date`)
 - Quick filters (`Day`, `Week`, `Month`)
@@ -27,6 +28,8 @@ Chrome-first day trading journal app for Bank Nifty, Nifty 50, and MCX Crude opt
 - Strategy, instrument, and status filters on the Trades page
 - Common strategy quick-add button in Strategies page
 - Stop loss / target capture with automatic R-multiple and risk:reward preview
+- Pre-Trade Analysis position-sizing calculator (recommended qty from capital + risk %)
+- Add/Edit trade as a focused modal with At Entry / At Exit discipline sections
 - Per-trade tags and chart screenshot attachment
 - Strategy Analytics (win rate, expectancy, profit factor, avg R per strategy)
 - Psychology & Mistakes analytics (P&L grouped by emotion and mistake type)
@@ -65,6 +68,7 @@ All data is stored in browser localStorage keys:
 
 - `trading-journal-trades-v1`
 - `trading-journal-strategies-v1`
+- `trading-journal-instruments-v1`
 - `trading-journal-settings-v1`
 
 If you clear browser storage, data is deleted.

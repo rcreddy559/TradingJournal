@@ -1,4 +1,8 @@
-export type Instrument = "BANKNIFTY" | "NIFTY50" | "MCX_CRUDE";
+/**
+ * Instruments are user-managed, so the stored value is a free-form symbol key
+ * (see `InstrumentDef`). The three original built-ins remain the defaults.
+ */
+export type Instrument = string;
 export type Segment = "OPTIONS";
 export type OptionType = "CE" | "PE";
 export type TradeSide = "BUY" | "SELL";
@@ -14,12 +18,25 @@ export type MistakeType =
   | "LATE_ENTRY"
   | "NO_STOP_LOSS"
   | "RULE_BREAK";
+export type ExecutionQuality =
+  "EXCELLENT" | "GOOD" | "AVERAGE" | "POOR" | "VERY_POOR";
 
 export interface Strategy {
   id: string;
   name: string;
   rules?: string;
   timeframe?: StrategyTimeframe;
+  createdAt: string;
+}
+
+/**
+ * A user-managed instrument. `symbol` is the stable key stored on
+ * `Trade.instrument`; `name` is the human-readable label shown in the UI.
+ */
+export interface InstrumentDef {
+  id: string;
+  symbol: string;
+  name: string;
   createdAt: string;
 }
 
@@ -49,6 +66,7 @@ export interface Trade {
   emotionAfter?: TradeEmotion;
   confidenceScore?: number;
   mistakeType?: MistakeType;
+  executionQuality?: ExecutionQuality;
   entryReason?: string;
   exitReason?: string;
   lessonLearned?: string;

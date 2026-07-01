@@ -1,12 +1,27 @@
-import { createContext, ReactNode, useCallback, useContext, useState } from "react";
+import {
+  createContext,
+  ReactNode,
+  useCallback,
+  useContext,
+  useState,
+} from "react";
 import { AuthUser } from "../types";
-import { clearCurrentUser, readCurrentUser, writeCurrentUser } from "../db/authStorage";
+import {
+  addKnownUser,
+  clearCurrentUser,
+  readCurrentUser,
+  readKnownUsers,
+  removeKnownUser,
+  writeCurrentUser,
+} from "../db/authStorage";
 
 interface AuthContextValue {
   user: AuthUser | null;
   isAuthenticated: boolean;
+  knownUsers: string[];
   login: (username: string) => void;
   logout: () => void;
+  forgetUser: (username: string) => void;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -18,11 +33,13 @@ const loadInitialUser = (): AuthUser | null => {
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(loadInitialUser);
+  const [knownUsers, setKnownUsers] = useState<string[]>(readKnownUsers);
 
   const login = useCallback((username: string) => {
     const trimmed = username.trim();
     if (!trimmed) return;
     writeCurrentUser(trimmed);
+    setKnownUsers(addKnownUser(trimmed));
     setUser({ username: trimmed });
   }, []);
 
@@ -31,9 +48,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
   }, []);
 
+  const forgetUser = useCallback((username: string) => {
+    setKnownUsers(removeKnownUser(username));
+  }, []);
+
   return (
     <AuthContext.Provider
-      value={{ user, isAuthenticated: user !== null, login, logout }}
+      value={{
+        user,
+        isAuthenticated: user !== null,
+        knownUsers,
+        login,
+        logout,
+        forgetUser,
+      }}
     >
       {children}
     </AuthContext.Provider>

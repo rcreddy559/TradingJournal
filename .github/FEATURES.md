@@ -13,11 +13,23 @@ required.
 - **Strategies CRUD** — add, edit, and delete strategies with timeframe and
   rules. Deleting an in-use strategy prompts to reassign its trades or leave
   them unassigned.
+- **Instruments CRUD** — user-managed instrument list, editable inline from the
+  Add Trade form ("Manage" beside the Symbol field). Everyone can add the
+  symbols they trade; the three built-ins (Bank Nifty, Nifty 50, MCX Crude) are
+  the defaults. Instruments flow through the filters, CSV import, and backups.
 - **Risk settings** — daily loss limit and max trades/day, with live warnings
   while adding trades.
 
 ## Trade capture
 
+- **Add New Trade** opens as a focused modal over the trade list with grouped
+  sections: Pre-Trade Analysis, trade basics, dates, and execution discipline.
+- **Pre-Trade Analysis** position-sizing card computes a recommended quantity
+  from the profile's trading capital and risk-per-trade %, given a planned entry
+  and stop; one click applies the size to the trade.
+- **At Entry / At Exit** two-column discipline layout: reason taxonomy
+  (category chips → specific reason), primary strategy, pre-trade emotion, plus
+  execution quality, post-trade emotion, mistake type, and notes/learnings.
 - Stop loss and target fields → automatic **R-multiple** and planned **risk /
   reward** preview.
 - Free-form **tags** for slicing beyond strategy/instrument.
@@ -55,12 +67,12 @@ required.
 
 - `u:<user>:trading-journal-trades-v1`
 - `u:<user>:trading-journal-strategies-v1`
+- `u:<user>:trading-journal-instruments-v1`
 - `u:<user>:trading-journal-settings-v1`
 - `trading-journal-theme`
 
 ## Ideas / backlog
 
-- Position sizing calculator driven by account capital + risk %.
 - Per-day rule-adherence / discipline score.
 - Multi-leg options positions (spreads, straddles) as first-class trades.
 - Cloud sync / multi-device backup.

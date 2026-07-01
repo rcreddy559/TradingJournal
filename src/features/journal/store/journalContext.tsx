@@ -17,6 +17,7 @@ interface JournalContextValue {
 const initialState: JournalState = {
   trades: [],
   strategies: [],
+  instruments: [],
   settings: journalService.getSettings(),
   profile: null,
   filters: {
@@ -34,6 +35,7 @@ const getInitialState = (): JournalState => {
     ...initialState,
     trades: journalService.getTrades(),
     strategies: journalService.getStrategies(),
+    instruments: journalService.getInstruments(),
     settings: journalService.getSettings(),
     profile: journalService.getProfile(),
   };

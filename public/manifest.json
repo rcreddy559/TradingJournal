@@ -1,0 +1,25 @@
+{
+  "manifest_version": 3,
+  "name": "Trading Journal",
+  "version": "0.1.0",
+  "description": "Day trading journal for Bank Nifty, Nifty 50, and MCX Crude options. Track trades, strategies, psychology, and analytics offline.",
+  "action": {
+    "default_title": "Open Trading Journal",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "32": "icons/icon32.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "permissions": ["storage"],
+  "icons": {
+    "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  }
+}

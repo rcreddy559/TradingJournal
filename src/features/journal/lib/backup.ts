@@ -1,10 +1,17 @@
-import { AppSettings, Strategy, Trade, TraderProfile } from "../types/trade";
+import {
+  AppSettings,
+  InstrumentDef,
+  Strategy,
+  Trade,
+  TraderProfile,
+} from "../types/trade";
 
 export interface JournalBackup {
   version: 1;
   exportedAt: string;
   trades: Trade[];
   strategies: Strategy[];
+  instruments?: InstrumentDef[];
   settings: AppSettings;
   profile?: TraderProfile | null;
 }
@@ -12,6 +19,7 @@ export interface JournalBackup {
 export const buildBackup = (
   trades: Trade[],
   strategies: Strategy[],
+  instruments: InstrumentDef[],
   settings: AppSettings,
   profile: TraderProfile | null,
 ): JournalBackup => ({
@@ -19,6 +27,7 @@ export const buildBackup = (
   exportedAt: new Date().toISOString(),
   trades,
   strategies,
+  instruments,
   settings,
   profile,
 });
@@ -40,6 +49,7 @@ export const downloadBackup = (
 export interface ParsedBackup {
   trades: Trade[];
   strategies: Strategy[];
+  instruments?: InstrumentDef[];
   settings?: AppSettings;
   profile?: TraderProfile | null;
 }
@@ -68,6 +78,9 @@ export const parseBackup = (text: string): ParsedBackup | null => {
   return {
     trades: candidate.trades as Trade[],
     strategies: candidate.strategies as Strategy[],
+    instruments: Array.isArray(candidate.instruments)
+      ? (candidate.instruments as InstrumentDef[])
+      : undefined,
     settings:
       candidate.settings && typeof candidate.settings === "object"
         ? (candidate.settings as AppSettings)

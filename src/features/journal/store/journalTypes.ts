@@ -1,9 +1,16 @@
 import { AppView } from "../../../shared/types/app";
-import { AppSettings, Strategy, Trade, TraderProfile } from "../types/trade";
+import {
+  AppSettings,
+  InstrumentDef,
+  Strategy,
+  Trade,
+  TraderProfile,
+} from "../types/trade";
 
 export interface JournalState {
   trades: Trade[];
   strategies: Strategy[];
+  instruments: InstrumentDef[];
   settings: AppSettings;
   profile: TraderProfile | null;
   filters: {
@@ -27,6 +34,9 @@ export type JournalAction =
   | { type: "ADD_STRATEGY"; payload: Strategy }
   | { type: "UPDATE_STRATEGY"; payload: Strategy }
   | { type: "DELETE_STRATEGY"; payload: string }
+  | { type: "ADD_INSTRUMENT"; payload: InstrumentDef }
+  | { type: "UPDATE_INSTRUMENT"; payload: InstrumentDef }
+  | { type: "DELETE_INSTRUMENT"; payload: string }
   | { type: "SET_SETTINGS"; payload: AppSettings }
   | { type: "SET_PROFILE"; payload: TraderProfile }
   | { type: "DELETE_PROFILE" }
@@ -35,6 +45,7 @@ export type JournalAction =
       payload: {
         trades: Trade[];
         strategies: Strategy[];
+        instruments?: InstrumentDef[];
         settings?: AppSettings;
         profile?: TraderProfile | null;
       };

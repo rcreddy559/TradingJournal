@@ -1,17 +1,56 @@
 {
+  "id": "/",
   "name": "Trading Journal",
   "short_name": "Journal",
-  "description": "Day trading journal for Bank Nifty, Nifty 50, and MCX Crude options.",
-  "start_url": "/",
+  "description": "Day trading journal for Bank Nifty, Nifty 50, and MCX Crude options. Track trades, strategies, psychology, and performance analytics offline.",
+  "start_url": "/?source=pwa",
+  "scope": "/",
   "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone", "minimal-ui"],
+  "orientation": "any",
+  "lang": "en",
+  "dir": "ltr",
+  "categories": ["finance", "productivity", "business"],
   "background_color": "#081118",
   "theme_color": "#081118",
+  "launch_handler": {
+    "client_mode": "focus-existing"
+  },
   "icons": [
     {
       "src": "/icon.svg",
       "sizes": "any",
       "type": "image/svg+xml",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-maskable.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Add Trade",
+      "short_name": "Add Trade",
+      "description": "Log a new trade",
+      "url": "/?view=ADD_TRADE&source=shortcut",
+      "icons": [{ "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml" }]
+    },
+    {
+      "name": "Dashboard",
+      "short_name": "Dashboard",
+      "description": "View performance dashboard",
+      "url": "/?view=DASHBOARD&source=shortcut",
+      "icons": [{ "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml" }]
+    },
+    {
+      "name": "Trades",
+      "short_name": "Trades",
+      "description": "Browse your trade history",
+      "url": "/?view=TRADES&source=shortcut",
+      "icons": [{ "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml" }]
     }
   ]
 }

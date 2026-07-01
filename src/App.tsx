@@ -1,4 +1,4 @@
-import { ChangeEvent, useRef } from "react";
+import { ChangeEvent, useEffect, useRef } from "react";
 import Sidebar from "./features/journal/components/Sidebar";
 import AddTradePage from "./features/journal/pages/AddTradePage";
 import DashboardPage from "./features/journal/pages/DashboardPage";
@@ -17,6 +17,18 @@ import {
 import { exportTradesCsv } from "./features/journal/lib/csv";
 import { LoginModal, useAuth } from "./features/auth";
 import { useToast } from "./shared/ui";
+import { AppView } from "./shared/types/app";
+
+const SHORTCUT_VIEWS: AppView[] = [
+  "DASHBOARD",
+  "ADD_TRADE",
+  "TRADES",
+  "STRATEGIES",
+  "STRATEGY_ANALYTICS",
+  "PSYCHOLOGY",
+  "PROFILE",
+  "SETTINGS",
+];
 
 export default function App() {
   const { user } = useAuth();
@@ -41,6 +53,28 @@ function JournalShell() {
   const { setView, importTradesFromCsvText } = useJournalActions();
   const { notify } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Honour PWA app-shortcut / deep links like "/?view=ADD_TRADE" and then strip
+  // the query so a manual refresh doesn't keep forcing that view.
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const requested = params.get("view");
+    if (requested && SHORTCUT_VIEWS.includes(requested as AppView)) {
+      setView(requested as AppView);
+    }
+    if (params.has("view") || params.has("source")) {
+      params.delete("view");
+      params.delete("source");
+      const query = params.toString();
+      window.history.replaceState(
+        {},
+        "",
+        window.location.pathname + (query ? `?${query}` : ""),
+      );
+    }
+    // Run once on mount.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleImportClick = () => {
     fileInputRef.current?.click();
@@ -114,7 +148,12 @@ function JournalShell() {
 
       <main>
         {ui.view === "DASHBOARD" && <DashboardPage />}
-        {ui.view === "ADD_TRADE" && <AddTradePage />}
+        {ui.view === "ADD_TRADE" && (
+          <>
+            <TradesPage />
+            <AddTradePage />
+          </>
+        )}
         {ui.view === "TRADES" && <TradesPage />}
         {ui.view === "STRATEGIES" && <StrategiesPage />}
         {ui.view === "STRATEGY_ANALYTICS" && <StrategyAnalyticsPage />}

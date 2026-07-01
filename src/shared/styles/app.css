@@ -117,6 +117,30 @@ body {
     font-size: 0.82rem;
 }
 
+.segment-tags {
+    margin-top: 0.55rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+}
+
+.segment-tag {
+    display: inline-flex;
+    align-items: center;
+    max-width: 100%;
+    padding: 0.15rem 0.5rem;
+    border-radius: 999px;
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    color: var(--muted);
+    background: rgba(148, 163, 184, 0.14);
+    border: 1px solid var(--border, rgba(148, 163, 184, 0.22));
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
 .nav-btn,
 .export-btn {
     width: 100%;
@@ -279,6 +303,23 @@ button:hover {
 .login-form {
     display: grid;
     gap: 0.85rem;
+}
+
+.login-user-row {
+    display: flex;
+    gap: 0.5rem;
+    align-items: stretch;
+}
+
+.login-user-row select {
+    flex: 1;
+    min-width: 0;
+}
+
+.login-forget-btn {
+    flex: 0 0 auto;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.78rem;
 }
 
 .login-submit {
@@ -783,6 +824,242 @@ pre,
     color: var(--muted);
 }
 
+/* ---- Trades page: detail cards ---- */
+.trades-empty {
+    padding: 2rem 1rem;
+    text-align: center;
+    color: var(--muted);
+    border: 1px dashed var(--line-soft);
+    border-radius: 12px;
+    background: var(--panel);
+}
+
+.trades-list {
+    display: grid;
+    gap: 0.9rem;
+}
+
+.trade-card {
+    display: grid;
+    gap: 0.85rem;
+    padding: 1rem 1.15rem;
+    border: 1px solid var(--line-soft);
+    border-radius: 14px;
+    background: var(--panel);
+    box-shadow: var(--shadow);
+    transition:
+        border-color 0.15s ease,
+        transform 0.15s ease;
+}
+
+.trade-card:hover {
+    border-color: var(--accent);
+    transform: translateY(-1px);
+}
+
+.trade-card-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.trade-ident {
+    display: grid;
+    gap: 0.4rem;
+}
+
+.trade-symbol-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.trade-symbol {
+    font-size: 1.05rem;
+    color: var(--text);
+}
+
+.side-badge {
+    font-size: 0.66rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 0.16rem 0.55rem;
+    border-radius: 999px;
+    border: 1px solid transparent;
+}
+
+.side-badge.long {
+    background: rgba(50, 210, 150, 0.16);
+    color: var(--green);
+    border-color: rgba(50, 210, 150, 0.4);
+}
+
+.side-badge.short {
+    background: rgba(255, 106, 106, 0.14);
+    color: var(--red);
+    border-color: rgba(255, 106, 106, 0.4);
+}
+
+.trade-option-tag {
+    font-size: 0.72rem;
+    color: var(--muted);
+    border: 1px solid var(--line-soft);
+    border-radius: 6px;
+    padding: 0.1rem 0.45rem;
+}
+
+.trade-submeta {
+    display: flex;
+    gap: 0.85rem;
+    flex-wrap: wrap;
+    font-size: 0.78rem;
+    color: var(--muted);
+}
+
+.trade-head-right {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.3rem;
+}
+
+.trade-pnl {
+    font-size: 1.2rem;
+    font-variant-numeric: tabular-nums;
+}
+
+.status-badge {
+    font-size: 0.66rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 0.16rem 0.6rem;
+    border-radius: 999px;
+}
+
+.status-badge.win {
+    background: rgba(50, 210, 150, 0.16);
+    color: var(--green);
+}
+
+.status-badge.loss {
+    background: rgba(255, 106, 106, 0.14);
+    color: var(--red);
+}
+
+.trade-metrics {
+    display: grid;
+    grid-template-columns: repeat(8, minmax(0, 1fr));
+    gap: 0.6rem;
+    padding: 0.7rem 0.85rem;
+    border: 1px solid var(--line-soft);
+    border-radius: 10px;
+    background: var(--input-bg);
+}
+
+.trade-metric {
+    display: grid;
+    gap: 0.16rem;
+    min-width: 0;
+}
+
+.trade-metric-label {
+    font-size: 0.62rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--muted);
+}
+
+.trade-metric-value {
+    font-size: 0.9rem;
+    font-variant-numeric: tabular-nums;
+    color: var(--text);
+}
+
+.trade-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+}
+
+.note-chip-warn {
+    color: var(--warn);
+    border-color: rgba(255, 207, 102, 0.4);
+}
+
+.trade-note-text {
+    margin: 0;
+    font-size: 0.85rem;
+    line-height: 1.45;
+    color: var(--text);
+    background: var(--input-bg);
+    border: 1px solid var(--line-soft);
+    border-left: 3px solid var(--accent);
+    border-radius: 8px;
+    padding: 0.55rem 0.75rem;
+    white-space: pre-wrap;
+}
+
+.trade-journal summary {
+    cursor: pointer;
+    font-size: 0.8rem;
+    color: var(--accent);
+    width: fit-content;
+}
+
+.trade-journal-body {
+    display: grid;
+    gap: 0.35rem;
+    margin-top: 0.5rem;
+    font-size: 0.83rem;
+    color: var(--muted);
+}
+
+.trade-journal-body p {
+    margin: 0;
+}
+
+.trade-journal-body strong {
+    color: var(--text);
+}
+
+.trade-card-foot {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+}
+
+.trade-card-foot button {
+    padding: 0.42rem 1rem;
+    font-size: 0.8rem;
+}
+
+@media (max-width: 900px) {
+    .trade-metrics {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 520px) {
+    .trade-metrics {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .trade-card-head {
+        flex-direction: column;
+    }
+
+    .trade-head-right {
+        flex-direction: row;
+        align-items: center;
+        gap: 0.6rem;
+    }
+}
+
 /* Modal */
 .modal-overlay {
     position: fixed;
@@ -822,6 +1099,415 @@ pre,
     display: flex;
     justify-content: flex-end;
     gap: 0.55rem;
+}
+
+/* ---- Add / Edit Trade modal ---- */
+.trade-modal {
+    width: 100%;
+    max-width: 940px;
+    max-height: 92vh;
+    display: flex;
+    flex-direction: column;
+    background: var(--panel-strong);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    box-shadow: var(--shadow);
+    overflow: hidden;
+}
+
+.trade-modal-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1.35rem;
+    border-bottom: 1px solid var(--line-soft);
+}
+
+.trade-modal-head h2 {
+    margin: 0;
+    font-size: 1.2rem;
+}
+
+.trade-modal-close {
+    width: 34px;
+    height: 34px;
+    padding: 0;
+    font-size: 1.2rem;
+    line-height: 1;
+    border-radius: 9px;
+    background: transparent;
+    border: 1px solid var(--line-soft);
+    color: var(--muted);
+}
+
+.trade-modal-body {
+    display: grid;
+    gap: 0.9rem;
+    padding: 1.1rem 1.35rem;
+    overflow-y: auto;
+}
+
+.trade-modal-foot {
+    display: grid;
+    gap: 0.6rem;
+    padding: 0.9rem 1.35rem 1.1rem;
+    border-top: 1px solid var(--line-soft);
+    background: var(--panel);
+}
+
+.trade-modal-foot .pnl-preview,
+.trade-modal-foot .action-row,
+.trade-modal-foot .risk-alert {
+    grid-column: auto;
+}
+
+.form-row {
+    display: grid;
+    gap: 0.7rem;
+}
+
+.form-row-2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.form-row-3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.form-row-4 {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.strategy-row {
+    display: grid;
+    grid-template-columns: minmax(200px, 300px) 1fr;
+    gap: 0.8rem;
+    align-items: stretch;
+}
+
+.strategy-rules-beside {
+    display: grid;
+    gap: 0.3rem;
+    align-content: start;
+    padding: 0.55rem 0.7rem;
+    border: 1px solid var(--line-soft);
+    border-radius: 9px;
+    background: var(--input-bg);
+}
+
+.strategy-rules-beside p {
+    margin: 0;
+    font-size: 0.83rem;
+    color: var(--text);
+    white-space: pre-wrap;
+}
+
+.form-row-5 {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+.form-row-6 {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+}
+
+.tf-field {
+    gap: 0.3rem;
+}
+
+.field-caption {
+    text-transform: uppercase;
+    font-size: 0.66rem;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+    font-weight: 600;
+}
+
+.tf-field-caption-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+}
+
+.tf-manage-link {
+    border: none;
+    background: transparent;
+    color: var(--accent, #4f8cff);
+    font-size: 0.66rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    cursor: pointer;
+    padding: 0;
+}
+
+.tf-manage-link:hover {
+    text-decoration: underline;
+}
+
+.instrument-manager {
+    border: 1px solid var(--border, rgba(148, 163, 184, 0.25));
+    border-radius: 10px;
+    padding: 0.85rem 0.95rem;
+    background: var(--surface-2, rgba(148, 163, 184, 0.06));
+    display: grid;
+    gap: 0.7rem;
+    margin-top: -0.2rem;
+}
+
+.instrument-manager-head {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+}
+
+.instrument-manager-head span {
+    font-weight: 700;
+    font-size: 0.82rem;
+}
+
+.instrument-manager-head small {
+    color: var(--muted);
+    font-size: 0.72rem;
+}
+
+.instrument-manager-add {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.instrument-manager-add input {
+    flex: 1 1 200px;
+    min-width: 160px;
+}
+
+.btn-sm {
+    padding: 0.35rem 0.75rem;
+    font-size: 0.78rem;
+}
+
+.instrument-manager-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 0.4rem;
+}
+
+.instrument-chip-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.6rem;
+    padding: 0.4rem 0.6rem;
+    border-radius: 8px;
+    background: var(--surface, rgba(148, 163, 184, 0.08));
+}
+
+.instrument-chip-name {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 600;
+    font-size: 0.85rem;
+}
+
+.instrument-chip-name code {
+    font-size: 0.68rem;
+    color: var(--muted);
+    background: rgba(148, 163, 184, 0.16);
+    padding: 0.1rem 0.35rem;
+    border-radius: 5px;
+    font-weight: 500;
+}
+
+.instrument-chip-actions {
+    display: flex;
+    gap: 0.4rem;
+}
+
+.chip-action {
+    border: 1px solid var(--border, rgba(148, 163, 184, 0.3));
+    background: transparent;
+    color: inherit;
+    border-radius: 6px;
+    padding: 0.2rem 0.55rem;
+    font-size: 0.72rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.chip-action:hover:not(:disabled) {
+    border-color: var(--accent, #4f8cff);
+    color: var(--accent, #4f8cff);
+}
+
+.chip-action-danger:hover:not(:disabled) {
+    border-color: #e5484d;
+    color: #e5484d;
+}
+
+.chip-action:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+.form-divider {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin: 0.25rem 0;
+    text-transform: uppercase;
+    font-size: 0.68rem;
+    letter-spacing: 0.09em;
+    color: var(--muted);
+}
+
+.form-divider::before,
+.form-divider::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: var(--line-soft);
+}
+
+.pre-trade-card {
+    display: grid;
+    gap: 0.55rem;
+    padding: 0.9rem 1rem;
+    border: 1px solid rgba(50, 210, 150, 0.4);
+    border-radius: 12px;
+    background: rgba(50, 210, 150, 0.08);
+}
+
+.pre-trade-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+}
+
+.pre-trade-portfolio {
+    font-size: 0.82rem;
+    color: var(--muted);
+}
+
+.pre-trade-result {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    font-size: 0.85rem;
+    padding: 0.5rem 0.65rem;
+    border-radius: 9px;
+    background: rgba(50, 210, 150, 0.12);
+}
+
+.pre-trade-result button {
+    padding: 0.4rem 0.7rem;
+    font-size: 0.8rem;
+}
+
+.info-hint {
+    margin: 0;
+    font-size: 0.78rem;
+    color: var(--muted);
+}
+
+.discipline-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.9rem;
+}
+
+.discipline-col {
+    display: grid;
+    gap: 0.6rem;
+    align-content: start;
+    padding: 0.9rem;
+    border: 1px solid var(--line-soft);
+    border-radius: 12px;
+}
+
+.discipline-col.at-entry {
+    background: rgba(77, 180, 255, 0.06);
+    border-color: rgba(77, 180, 255, 0.3);
+}
+
+.discipline-col.at-exit {
+    background: rgba(50, 210, 150, 0.06);
+    border-color: rgba(50, 210, 150, 0.3);
+}
+
+.col-head {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text);
+}
+
+.col-dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.col-dot.entry {
+    background: var(--accent);
+}
+
+.col-dot.exit {
+    background: var(--green);
+}
+
+.reason-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+}
+
+.reason-chip {
+    padding: 0.32rem 0.6rem;
+    font-size: 0.76rem;
+    border-radius: 999px;
+    background: var(--chip-bg);
+    border: 1px solid var(--chip-border);
+    color: var(--text);
+}
+
+.reason-chip.active {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #041018;
+}
+
+@media (max-width: 780px) {
+    .form-row-3,
+    .form-row-4,
+    .form-row-5,
+    .form-row-6,
+    .discipline-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 520px) {
+    .form-row-2,
+    .form-row-3,
+    .form-row-4,
+    .form-row-5,
+    .form-row-6,
+    .strategy-row,
+    .discipline-grid {
+        grid-template-columns: 1fr;
+    }
 }
 
 .confirm-message {
@@ -1001,5 +1687,115 @@ pre,
 
     .profile-card-actions {
         grid-auto-flow: column;
+    }
+}
+
+/* PWA install / update UI */
+.install-btn {
+    border-color: var(--accent) !important;
+    background: linear-gradient(
+        180deg,
+        rgba(77, 180, 255, 0.22),
+        rgba(31, 143, 218, 0.14)
+    ) !important;
+    color: var(--text);
+    font-weight: 600;
+}
+
+.install-btn:hover {
+    border-color: var(--accent-strong) !important;
+}
+
+.pwa-banner-stack {
+    position: fixed;
+    left: 50%;
+    bottom: calc(1rem + env(safe-area-inset-bottom));
+    transform: translateX(-50%);
+    z-index: 90;
+    display: grid;
+    gap: 0.6rem;
+    width: min(440px, calc(100% - 1.5rem));
+}
+
+.pwa-banner {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    padding: 0.85rem 1rem;
+    border-radius: 14px;
+    border: 1px solid var(--line);
+    background: var(--panel-strong);
+    box-shadow: var(--shadow);
+    animation: fadeUp 0.22s ease;
+}
+
+.pwa-banner-update {
+    border-color: var(--accent);
+}
+
+.pwa-banner-icon {
+    flex: none;
+    display: grid;
+    place-items: center;
+}
+
+.pwa-banner-icon img {
+    border-radius: 10px;
+}
+
+.pwa-banner-text {
+    display: grid;
+    gap: 0.15rem;
+    line-height: 1.25;
+    min-width: 0;
+}
+
+.pwa-banner-text strong {
+    font-size: 0.9rem;
+}
+
+.pwa-banner-text span {
+    font-size: 0.78rem;
+    color: var(--muted);
+}
+
+.pwa-banner-actions {
+    margin-left: auto;
+    display: flex;
+    gap: 0.4rem;
+    flex: none;
+}
+
+.pwa-banner-actions button {
+    padding: 0.45rem 0.8rem;
+    font-size: 0.82rem;
+    white-space: nowrap;
+}
+
+@media (max-width: 480px) {
+    .pwa-banner {
+        flex-wrap: wrap;
+    }
+
+    .pwa-banner-actions {
+        margin-left: 0;
+        width: 100%;
+    }
+
+    .pwa-banner-actions button {
+        flex: 1;
+    }
+}
+
+/* Respect device safe areas when running as an installed standalone app. */
+@media (display-mode: standalone), (display-mode: window-controls-overlay) {
+    .sidebar {
+        padding-top: calc(1.25rem + env(safe-area-inset-top));
+        padding-bottom: calc(1.25rem + env(safe-area-inset-bottom));
+        padding-left: calc(1.25rem + env(safe-area-inset-left));
+    }
+
+    main {
+        padding-right: calc(env(safe-area-inset-right));
     }
 }

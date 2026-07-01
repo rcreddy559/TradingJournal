@@ -61,6 +61,25 @@ export const journalReducer = (
           (strategy) => strategy.id !== action.payload,
         ),
       };
+    case "ADD_INSTRUMENT":
+      return {
+        ...state,
+        instruments: [...state.instruments, action.payload],
+      };
+    case "UPDATE_INSTRUMENT":
+      return {
+        ...state,
+        instruments: state.instruments.map((instrument) =>
+          instrument.id === action.payload.id ? action.payload : instrument,
+        ),
+      };
+    case "DELETE_INSTRUMENT":
+      return {
+        ...state,
+        instruments: state.instruments.filter(
+          (instrument) => instrument.id !== action.payload,
+        ),
+      };
     case "SET_SETTINGS":
       return {
         ...state,
@@ -81,6 +100,7 @@ export const journalReducer = (
         ...state,
         trades: action.payload.trades,
         strategies: action.payload.strategies,
+        instruments: action.payload.instruments ?? state.instruments,
         settings: action.payload.settings ?? state.settings,
         profile:
           action.payload.profile !== undefined

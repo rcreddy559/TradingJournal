@@ -3,6 +3,7 @@ import { DEFAULT_SETTINGS, journalService } from "../api/journalService";
 import { AppView } from "../../../shared/types/app";
 import {
   AppSettings,
+  InstrumentDef,
   MistakeType,
   Strategy,
   Trade,
@@ -120,6 +121,28 @@ export const useJournalActions = () => {
     });
   };
 
+  const createInstrument = (instrument: InstrumentDef) => {
+    const nextInstruments = [...state.instruments, instrument];
+    journalService.saveInstruments(nextInstruments);
+    dispatch({ type: "ADD_INSTRUMENT", payload: instrument });
+  };
+
+  const updateInstrument = (instrument: InstrumentDef) => {
+    const nextInstruments = state.instruments.map((item) =>
+      item.id === instrument.id ? instrument : item,
+    );
+    journalService.saveInstruments(nextInstruments);
+    dispatch({ type: "UPDATE_INSTRUMENT", payload: instrument });
+  };
+
+  const deleteInstrument = (instrumentId: string) => {
+    const nextInstruments = state.instruments.filter(
+      (instrument) => instrument.id !== instrumentId,
+    );
+    journalService.saveInstruments(nextInstruments);
+    dispatch({ type: "DELETE_INSTRUMENT", payload: instrumentId });
+  };
+
   const saveSettings = (settings: AppSettings) => {
     const normalized: AppSettings = {
       dailyLossLimit: Number.isFinite(settings.dailyLossLimit)
@@ -162,6 +185,14 @@ export const useJournalActions = () => {
     journalService.saveStrategies(backup.strategies);
     journalService.saveSettings(settings);
 
+    const nextInstruments =
+      backup.instruments && backup.instruments.length > 0
+        ? backup.instruments
+        : state.instruments;
+    if (backup.instruments && backup.instruments.length > 0) {
+      journalService.saveInstruments(backup.instruments);
+    }
+
     // Only overwrite the profile when the backup actually carries one, so an
     // older backup without a profile leaves the current profile untouched.
     const nextProfile =
@@ -179,6 +210,7 @@ export const useJournalActions = () => {
       payload: {
         trades: backup.trades,
         strategies: backup.strategies,
+        instruments: nextInstruments,
         settings,
         profile: nextProfile,
       },
@@ -235,6 +267,23 @@ export const useJournalActions = () => {
     });
 
     const mergedStrategies = [...importedStrategies, ...state.strategies];
+
+    // Register any instrument symbols that aren't managed yet so they show up
+    // in the Add Trade / filter dropdowns and render with a friendly label.
+    const knownSymbols = new Set(state.instruments.map((item) => item.symbol));
+    const importedInstruments: InstrumentDef[] = [];
+    parsedTrades.forEach((row) => {
+      const symbol = row.instrument;
+      if (!symbol || knownSymbols.has(symbol)) return;
+      knownSymbols.add(symbol);
+      importedInstruments.push({
+        id: generateId(),
+        symbol,
+        name: symbol.replace(/_/g, " "),
+        createdAt: new Date().toISOString(),
+      });
+    });
+    const mergedInstruments = [...state.instruments, ...importedInstruments];
     const importedTrades: Trade[] = parsedTrades.map((row) => {
       const strategyKey = row.strategyName.trim().toLowerCase();
       const strategy = strategyByName.get(strategyKey);
@@ -285,10 +334,15 @@ export const useJournalActions = () => {
 
     const mergedTrades = [...importedTrades, ...state.trades];
     journalService.saveStrategies(mergedStrategies);
+    journalService.saveInstruments(mergedInstruments);
     journalService.saveTrades(mergedTrades);
     dispatch({
       type: "REPLACE_ALL_DATA",
-      payload: { trades: mergedTrades, strategies: mergedStrategies },
+      payload: {
+        trades: mergedTrades,
+        strategies: mergedStrategies,
+        instruments: mergedInstruments,
+      },
     });
     dispatch({ type: "SET_VIEW", payload: "TRADES" });
 
@@ -311,6 +365,9 @@ export const useJournalActions = () => {
     updateStrategy,
     deleteStrategy,
     deleteStrategyWithReassign,
+    createInstrument,
+    updateInstrument,
+    deleteInstrument,
     saveSettings,
     saveProfile,
     deleteProfile,

@@ -1,6 +1,7 @@
 import { ReactNode } from "react";
 import { AppView } from "../../../shared/types/app";
 import { useTheme } from "../../../shared/ui";
+import { InstallButton } from "../../../shared/pwa";
 
 interface SidebarItem {
   key: AppView;
@@ -61,7 +62,6 @@ export default function Sidebar({
   return (
     <aside className="sidebar">
       <h1>Trading Journal</h1>
-      <p className="subhead">Bank Nifty | Nifty 50 | MCX Crude</p>
       <nav>
         {items.map((item) => (
           <button
@@ -83,6 +83,7 @@ export default function Sidebar({
         >
           {theme === "dark" ? "\u2600 Light Mode" : "\u263e Dark Mode"}
         </button>
+        <InstallButton className="nav-btn install-btn" />
         <div className="sidebar-actions">{actions}</div>
         <button
           type="button"
