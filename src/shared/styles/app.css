@@ -1102,65 +1102,414 @@ pre,
 }
 
 /* ---- Add / Edit Trade modal ---- */
+.trade-modal-overlay {
+    padding: 1.5rem 1.25rem;
+    background:
+        radial-gradient(
+            circle at 18% -5%,
+            rgba(77, 180, 255, 0.18) 0%,
+            transparent 55%
+        ),
+        radial-gradient(
+            circle at 88% 105%,
+            rgba(50, 210, 150, 0.16) 0%,
+            transparent 55%
+        ),
+        rgba(4, 9, 14, 0.74);
+    backdrop-filter: blur(10px) saturate(120%);
+    -webkit-backdrop-filter: blur(10px) saturate(120%);
+    animation: tmFade 0.22s ease;
+}
+
+:root[data-theme="light"] .trade-modal-overlay {
+    background:
+        radial-gradient(
+            circle at 18% -5%,
+            rgba(31, 143, 218, 0.2) 0%,
+            transparent 55%
+        ),
+        radial-gradient(
+            circle at 88% 105%,
+            rgba(18, 138, 95, 0.16) 0%,
+            transparent 55%
+        ),
+        rgba(222, 232, 241, 0.72);
+}
+
+@keyframes tmFade {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes tmRise {
+    from {
+        opacity: 0;
+        transform: translateY(20px) scale(0.985);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+@keyframes tmShine {
+    to {
+        transform: translateX(120%);
+    }
+}
+
 .trade-modal {
+    /* Scoped tokens keep the glass treatment out of the rest of the app. */
+    --tm-surface-1: rgba(21, 35, 47, 0.94);
+    --tm-surface-2: rgba(11, 20, 29, 0.96);
+    --tm-card: rgba(255, 255, 255, 0.035);
+    --tm-card-hover: rgba(255, 255, 255, 0.058);
+    --tm-hairline: rgba(255, 255, 255, 0.09);
+    --tm-hairline-strong: rgba(255, 255, 255, 0.17);
+    --tm-field-bg: rgba(7, 14, 21, 0.68);
+    --tm-field-border: rgba(255, 255, 255, 0.11);
+    --tm-chevron: #7d94a7;
+    --tm-glow: rgba(77, 180, 255, 0.24);
+    --tm-shadow:
+        0 34px 80px -26px rgba(0, 0, 0, 0.78), 0 2px 8px rgba(0, 0, 0, 0.28);
+    --tm-tint-green: rgba(50, 210, 150, 0.13);
+    --tm-tint-red: rgba(255, 106, 106, 0.13);
+    --tm-on-accent: #04121c;
+
+    position: relative;
     width: 100%;
-    max-width: 940px;
+    max-width: 1040px;
     max-height: 92vh;
     display: flex;
     flex-direction: column;
-    background: var(--panel-strong);
-    border: 1px solid var(--line);
-    border-radius: 16px;
-    box-shadow: var(--shadow);
+    border: 1px solid var(--tm-hairline);
+    border-radius: 22px;
+    background: linear-gradient(
+        168deg,
+        var(--tm-surface-1) 0%,
+        var(--tm-surface-2) 100%
+    );
+    backdrop-filter: blur(24px) saturate(150%);
+    -webkit-backdrop-filter: blur(24px) saturate(150%);
+    box-shadow: var(--tm-shadow);
     overflow: hidden;
+    animation: tmRise 0.3s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
+:root[data-theme="light"] .trade-modal {
+    --tm-surface-1: rgba(255, 255, 255, 0.97);
+    --tm-surface-2: rgba(240, 246, 251, 0.98);
+    --tm-card: rgba(23, 60, 92, 0.035);
+    --tm-card-hover: rgba(23, 60, 92, 0.06);
+    --tm-hairline: rgba(23, 60, 92, 0.13);
+    --tm-hairline-strong: rgba(23, 60, 92, 0.24);
+    --tm-field-bg: #ffffff;
+    --tm-field-border: rgba(23, 60, 92, 0.18);
+    --tm-chevron: #5f7487;
+    --tm-glow: rgba(31, 143, 218, 0.22);
+    --tm-shadow:
+        0 30px 70px -28px rgba(23, 60, 92, 0.42),
+        0 2px 6px rgba(23, 60, 92, 0.08);
+    --tm-tint-green: rgba(18, 138, 95, 0.1);
+    --tm-tint-red: rgba(210, 63, 63, 0.1);
+    --tm-on-accent: #ffffff;
+}
+
+/* Gradient accent strip across the top edge. */
+.trade-modal::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(
+        90deg,
+        var(--accent) 0%,
+        var(--green) 52%,
+        var(--warn) 100%
+    );
+    opacity: 0.95;
+    z-index: 4;
+    pointer-events: none;
+}
+
+/* ---- Header ---- */
 .trade-modal-head {
+    position: relative;
+    z-index: 2;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 1rem 1.35rem;
-    border-bottom: 1px solid var(--line-soft);
+    gap: 1rem;
+    padding: 1.15rem 1.5rem 1rem;
+    border-bottom: 1px solid var(--tm-hairline);
+    background: linear-gradient(
+        180deg,
+        rgba(255, 255, 255, 0.05),
+        transparent
+    );
+}
+
+:root[data-theme="light"] .trade-modal-head {
+    background: linear-gradient(180deg, rgba(23, 60, 92, 0.04), transparent);
+}
+
+.tm-head-left {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    min-width: 0;
+}
+
+.tm-head-badge {
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: 42px;
+    height: 42px;
+    border-radius: 13px;
+    color: var(--accent);
+    border: 1px solid var(--tm-hairline-strong);
+    background: linear-gradient(
+        150deg,
+        rgba(77, 180, 255, 0.26),
+        rgba(50, 210, 150, 0.16)
+    );
+    box-shadow: 0 8px 20px -10px var(--tm-glow);
+}
+
+.tm-head-badge svg {
+    width: 21px;
+    height: 21px;
+}
+
+.tm-head-text {
+    display: grid;
+    gap: 0.16rem;
+    min-width: 0;
 }
 
 .trade-modal-head h2 {
     margin: 0;
-    font-size: 1.2rem;
+    font-size: 1.18rem;
+    letter-spacing: -0.01em;
 }
 
-.trade-modal-close {
-    width: 34px;
-    height: 34px;
-    padding: 0;
-    font-size: 1.2rem;
-    line-height: 1;
-    border-radius: 9px;
-    background: transparent;
-    border: 1px solid var(--line-soft);
+.tm-head-sub {
+    margin: 0;
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.tm-head-right {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    flex-shrink: 0;
+}
+
+.tm-live-pnl {
+    display: grid;
+    gap: 0.1rem;
+    justify-items: end;
+    padding: 0.4rem 0.8rem;
+    border-radius: 12px;
+    border: 1px solid var(--tm-hairline);
+    background: var(--tm-card);
+    line-height: 1.15;
+    transition:
+        border-color 0.2s ease,
+        background 0.2s ease;
+}
+
+.tm-live-pnl span {
+    font-size: 0.58rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
     color: var(--muted);
 }
 
+.tm-live-pnl strong {
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-size: 0.94rem;
+    font-variant-numeric: tabular-nums;
+}
+
+.tm-live-pnl.tone-profit {
+    border-color: rgba(50, 210, 150, 0.45);
+    background: var(--tm-tint-green);
+}
+
+.tm-live-pnl.tone-profit strong {
+    color: var(--green);
+}
+
+.tm-live-pnl.tone-loss {
+    border-color: rgba(255, 106, 106, 0.45);
+    background: var(--tm-tint-red);
+}
+
+.tm-live-pnl.tone-loss strong {
+    color: var(--red);
+}
+
+.trade-modal-close {
+    display: grid;
+    place-items: center;
+    width: 38px;
+    height: 38px;
+    padding: 0;
+    border-radius: 12px;
+    background: var(--tm-card);
+    border: 1px solid var(--tm-hairline);
+    color: var(--muted);
+    transition:
+        transform 0.2s ease,
+        color 0.2s ease,
+        border-color 0.2s ease,
+        background 0.2s ease;
+}
+
+.trade-modal-close svg {
+    width: 16px;
+    height: 16px;
+}
+
+.trade-modal-close:hover {
+    color: var(--red);
+    border-color: rgba(255, 106, 106, 0.5);
+    background: var(--tm-tint-red);
+    transform: rotate(90deg);
+}
+
+/* ---- Body ---- */
 .trade-modal-body {
     display: grid;
-    gap: 0.9rem;
-    padding: 1.1rem 1.35rem;
+    gap: 0.85rem;
+    padding: 1.15rem 1.5rem 1.35rem;
     overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--tm-hairline-strong) transparent;
 }
 
-.trade-modal-foot {
+.trade-modal-body::-webkit-scrollbar {
+    width: 10px;
+}
+
+.trade-modal-body::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.trade-modal-body::-webkit-scrollbar-thumb {
+    background: var(--tm-hairline-strong);
+    border-radius: 999px;
+    border: 3px solid transparent;
+    background-clip: content-box;
+}
+
+.tm-inline-warning {
+    margin: 0;
+    padding: 0.7rem 0.9rem;
+    border-radius: 13px;
+    font-size: 0.85rem;
+    color: var(--text);
+    background: var(--tm-tint-red);
+    border: 1px solid rgba(255, 106, 106, 0.38);
+}
+
+/* ---- Section cards ---- */
+.tf-card {
     display: grid;
-    gap: 0.6rem;
-    padding: 0.9rem 1.35rem 1.1rem;
-    border-top: 1px solid var(--line-soft);
-    background: var(--panel);
+    gap: 0.85rem;
+    padding: 0.95rem 1.05rem 1.1rem;
+    border: 1px solid var(--tm-hairline);
+    border-radius: 16px;
+    background: var(--tm-card);
+    transition:
+        border-color 0.2s ease,
+        background 0.2s ease;
 }
 
-.trade-modal-foot .pnl-preview,
-.trade-modal-foot .action-row,
-.trade-modal-foot .risk-alert {
-    grid-column: auto;
+.tf-card:focus-within,
+.tf-card:hover {
+    border-color: var(--tm-hairline-strong);
+    background: var(--tm-card-hover);
 }
 
+.tf-card-head,
+.tf-section-head {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    flex-wrap: wrap;
+}
+
+.tf-section-head {
+    margin-top: 0.35rem;
+    padding: 0 0.15rem;
+}
+
+.tf-card-head h3,
+.tf-section-head h3 {
+    margin: 0;
+    font-size: 0.76rem;
+    font-weight: 700;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--text);
+}
+
+.tf-card-hint {
+    margin-right: auto;
+    font-size: 0.71rem;
+    color: var(--muted);
+}
+
+.tf-card-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.tf-card-dot.position {
+    background: var(--accent);
+    box-shadow: 0 0 0 4px rgba(77, 180, 255, 0.16);
+}
+
+.tf-card-dot.strategy {
+    background: #a78bfa;
+    box-shadow: 0 0 0 4px rgba(167, 139, 250, 0.16);
+}
+
+.tf-card-dot.contract {
+    background: var(--warn);
+    box-shadow: 0 0 0 4px rgba(255, 207, 102, 0.16);
+}
+
+.tf-card-dot.timing {
+    background: #22d3ee;
+    box-shadow: 0 0 0 4px rgba(34, 211, 238, 0.16);
+}
+
+.tf-card-dot.discipline {
+    background: var(--green);
+    box-shadow: 0 0 0 4px rgba(50, 210, 150, 0.16);
+}
+
+/* ---- Field layout ---- */
 .form-row {
     display: grid;
     gap: 0.7rem;
@@ -1178,30 +1527,6 @@ pre,
     grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
-.strategy-row {
-    display: grid;
-    grid-template-columns: minmax(200px, 300px) 1fr;
-    gap: 0.8rem;
-    align-items: stretch;
-}
-
-.strategy-rules-beside {
-    display: grid;
-    gap: 0.3rem;
-    align-content: start;
-    padding: 0.55rem 0.7rem;
-    border: 1px solid var(--line-soft);
-    border-radius: 9px;
-    background: var(--input-bg);
-}
-
-.strategy-rules-beside p {
-    margin: 0;
-    font-size: 0.83rem;
-    color: var(--text);
-    white-space: pre-wrap;
-}
-
 .form-row-5 {
     grid-template-columns: repeat(5, minmax(0, 1fr));
 }
@@ -1211,15 +1536,17 @@ pre,
 }
 
 .tf-field {
-    gap: 0.3rem;
+    display: grid;
+    gap: 0.34rem;
+    min-width: 0;
 }
 
 .field-caption {
     text-transform: uppercase;
-    font-size: 0.66rem;
-    letter-spacing: 0.06em;
+    font-size: 0.63rem;
+    letter-spacing: 0.08em;
     color: var(--muted);
-    font-weight: 600;
+    font-weight: 700;
 }
 
 .tf-field-caption-row {
@@ -1232,27 +1559,183 @@ pre,
 .tf-manage-link {
     border: none;
     background: transparent;
-    color: var(--accent, #4f8cff);
+    color: var(--accent);
     font-size: 0.66rem;
     font-weight: 700;
-    letter-spacing: 0.04em;
+    letter-spacing: 0.06em;
     text-transform: uppercase;
     cursor: pointer;
-    padding: 0;
+    padding: 0.1rem 0;
 }
 
 .tf-manage-link:hover {
+    color: var(--accent-strong);
     text-decoration: underline;
 }
 
+/* ---- Inputs (scoped so global form styling stays untouched) ---- */
+.trade-modal input,
+.trade-modal select,
+.trade-modal textarea {
+    width: 100%;
+    padding: 0.6rem 0.7rem;
+    border-radius: 11px;
+    font-size: 0.88rem;
+    color: var(--text);
+    background-color: var(--tm-field-bg);
+    border: 1px solid var(--tm-field-border);
+    transition:
+        border-color 0.16s ease,
+        box-shadow 0.16s ease,
+        background-color 0.16s ease;
+}
+
+.trade-modal input:hover:not(:disabled),
+.trade-modal select:hover:not(:disabled),
+.trade-modal textarea:hover:not(:disabled) {
+    border-color: var(--tm-hairline-strong);
+}
+
+.trade-modal input:focus,
+.trade-modal select:focus,
+.trade-modal textarea:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--tm-glow);
+}
+
+.trade-modal input::placeholder,
+.trade-modal textarea::placeholder {
+    color: var(--muted);
+    opacity: 0.65;
+}
+
+.trade-modal input[type="number"] {
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-variant-numeric: tabular-nums;
+}
+
+.trade-modal textarea {
+    resize: vertical;
+    min-height: 92px;
+    line-height: 1.5;
+}
+
+.trade-modal select {
+    appearance: none;
+    -webkit-appearance: none;
+    cursor: pointer;
+    padding-right: 2.1rem;
+    background-image:
+        linear-gradient(45deg, transparent 50%, var(--tm-chevron) 50%),
+        linear-gradient(135deg, var(--tm-chevron) 50%, transparent 50%);
+    background-position:
+        calc(100% - 17px) center,
+        calc(100% - 12px) center;
+    background-size: 5px 5px;
+    background-repeat: no-repeat;
+}
+
+.trade-modal option {
+    background: var(--panel-strong);
+    color: var(--text);
+}
+
+.trade-modal input[type="date"]::-webkit-calendar-picker-indicator,
+.trade-modal input[type="time"]::-webkit-calendar-picker-indicator {
+    filter: invert(0.72);
+    opacity: 0.7;
+    cursor: pointer;
+}
+
+:root[data-theme="light"]
+    .trade-modal
+    input[type="date"]::-webkit-calendar-picker-indicator,
+:root[data-theme="light"]
+    .trade-modal
+    input[type="time"]::-webkit-calendar-picker-indicator {
+    filter: none;
+}
+
+/* Currency / unit adornment sitting inside the field. */
+.tf-input-wrap {
+    position: relative;
+    display: block;
+}
+
+.tf-input-wrap::before {
+    content: attr(data-adorn);
+    position: absolute;
+    left: 0.72rem;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--muted);
+    pointer-events: none;
+}
+
+.tf-input-wrap > input {
+    padding-left: 1.72rem;
+}
+
+/* ---- Strategy + rules ---- */
+.strategy-row {
+    display: grid;
+    grid-template-columns: minmax(200px, 320px) 1fr;
+    gap: 0.8rem;
+    align-items: stretch;
+}
+
+.strategy-rules-beside {
+    display: grid;
+    gap: 0.35rem;
+    align-content: start;
+    padding: 0.65rem 0.8rem;
+    border: 1px solid var(--tm-field-border);
+    border-radius: 12px;
+    background: var(--tm-field-bg);
+}
+
+.strategy-rules-beside p {
+    margin: 0;
+    font-size: 0.83rem;
+    line-height: 1.5;
+    color: var(--text);
+    white-space: pre-wrap;
+}
+
+.strategy-rules-editor {
+    display: grid;
+    gap: 0.45rem;
+}
+
+.strategy-rules-editor textarea {
+    min-height: 74px;
+    font-size: 0.83rem;
+}
+
+.strategy-rules-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+}
+
+.strategy-rules-actions small {
+    color: var(--muted);
+    font-size: 0.68rem;
+}
+
+/* ---- Inline instrument manager ---- */
 .instrument-manager {
-    border: 1px solid var(--border, rgba(148, 163, 184, 0.25));
-    border-radius: 10px;
-    padding: 0.85rem 0.95rem;
-    background: var(--surface-2, rgba(148, 163, 184, 0.06));
     display: grid;
     gap: 0.7rem;
-    margin-top: -0.2rem;
+    padding: 0.85rem 0.95rem;
+    border: 1px dashed var(--tm-hairline-strong);
+    border-radius: 14px;
+    background: rgba(77, 180, 255, 0.06);
+    animation: tmFade 0.2s ease;
 }
 
 .instrument-manager-head {
@@ -1263,7 +1746,7 @@ pre,
 
 .instrument-manager-head span {
     font-weight: 700;
-    font-size: 0.82rem;
+    font-size: 0.8rem;
 }
 
 .instrument-manager-head small {
@@ -1283,8 +1766,10 @@ pre,
 }
 
 .btn-sm {
-    padding: 0.35rem 0.75rem;
+    padding: 0.42rem 0.85rem;
     font-size: 0.78rem;
+    font-weight: 600;
+    border-radius: 10px;
 }
 
 .instrument-manager-list {
@@ -1300,9 +1785,18 @@ pre,
     align-items: center;
     justify-content: space-between;
     gap: 0.6rem;
-    padding: 0.4rem 0.6rem;
-    border-radius: 8px;
-    background: var(--surface, rgba(148, 163, 184, 0.08));
+    padding: 0.45rem 0.65rem;
+    border-radius: 10px;
+    border: 1px solid var(--tm-hairline);
+    background: var(--tm-card);
+    transition:
+        border-color 0.16s ease,
+        background 0.16s ease;
+}
+
+.instrument-chip-row:hover {
+    border-color: var(--tm-hairline-strong);
+    background: var(--tm-card-hover);
 }
 
 .instrument-chip-name {
@@ -1311,45 +1805,55 @@ pre,
     gap: 0.5rem;
     font-weight: 600;
     font-size: 0.85rem;
+    min-width: 0;
 }
 
 .instrument-chip-name code {
-    font-size: 0.68rem;
-    color: var(--muted);
-    background: rgba(148, 163, 184, 0.16);
-    padding: 0.1rem 0.35rem;
-    border-radius: 5px;
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-size: 0.66rem;
     font-weight: 500;
+    color: var(--muted);
+    background: var(--tm-card-hover);
+    border: 1px solid var(--tm-hairline);
+    padding: 0.12rem 0.4rem;
+    border-radius: 6px;
 }
 
 .instrument-chip-actions {
     display: flex;
     gap: 0.4rem;
+    flex-shrink: 0;
 }
 
 .chip-action {
-    border: 1px solid var(--border, rgba(148, 163, 184, 0.3));
+    border: 1px solid var(--tm-hairline-strong);
     background: transparent;
-    color: inherit;
-    border-radius: 6px;
-    padding: 0.2rem 0.55rem;
+    color: var(--muted);
+    border-radius: 8px;
+    padding: 0.24rem 0.6rem;
     font-size: 0.72rem;
     font-weight: 600;
     cursor: pointer;
+    transition:
+        color 0.16s ease,
+        border-color 0.16s ease,
+        background 0.16s ease;
 }
 
 .chip-action:hover:not(:disabled) {
-    border-color: var(--accent, #4f8cff);
-    color: var(--accent, #4f8cff);
+    border-color: var(--accent);
+    color: var(--accent);
+    background: rgba(77, 180, 255, 0.1);
 }
 
 .chip-action-danger:hover:not(:disabled) {
-    border-color: #e5484d;
-    color: #e5484d;
+    border-color: var(--red);
+    color: var(--red);
+    background: var(--tm-tint-red);
 }
 
 .chip-action:disabled {
-    opacity: 0.45;
+    opacity: 0.4;
     cursor: not-allowed;
 }
 
@@ -1372,83 +1876,54 @@ pre,
     background: var(--line-soft);
 }
 
-.pre-trade-card {
-    display: grid;
-    gap: 0.55rem;
-    padding: 0.9rem 1rem;
-    border: 1px solid rgba(50, 210, 150, 0.4);
-    border-radius: 12px;
-    background: rgba(50, 210, 150, 0.08);
-}
-
-.pre-trade-head {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 0.5rem;
-}
-
-.pre-trade-portfolio {
-    font-size: 0.82rem;
-    color: var(--muted);
-}
-
-.pre-trade-result {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 0.75rem;
-    flex-wrap: wrap;
-    font-size: 0.85rem;
-    padding: 0.5rem 0.65rem;
-    border-radius: 9px;
-    background: rgba(50, 210, 150, 0.12);
-}
-
-.pre-trade-result button {
-    padding: 0.4rem 0.7rem;
-    font-size: 0.8rem;
-}
-
 .info-hint {
     margin: 0;
     font-size: 0.78rem;
     color: var(--muted);
 }
 
+/* ---- Execution & discipline ---- */
 .discipline-grid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 0.9rem;
+    gap: 0.85rem;
 }
 
 .discipline-col {
     display: grid;
-    gap: 0.6rem;
+    gap: 0.7rem;
     align-content: start;
-    padding: 0.9rem;
-    border: 1px solid var(--line-soft);
-    border-radius: 12px;
+    padding: 0.95rem 1rem 1.1rem;
+    border: 1px solid var(--tm-hairline);
+    border-radius: 16px;
 }
 
 .discipline-col.at-entry {
-    background: rgba(77, 180, 255, 0.06);
+    background: linear-gradient(
+        165deg,
+        rgba(77, 180, 255, 0.11),
+        rgba(77, 180, 255, 0.02)
+    );
     border-color: rgba(77, 180, 255, 0.3);
 }
 
 .discipline-col.at-exit {
-    background: rgba(50, 210, 150, 0.06);
+    background: linear-gradient(
+        165deg,
+        rgba(50, 210, 150, 0.11),
+        rgba(50, 210, 150, 0.02)
+    );
     border-color: rgba(50, 210, 150, 0.3);
 }
 
 .col-head {
     display: flex;
     align-items: center;
-    gap: 0.45rem;
+    gap: 0.5rem;
     font-size: 0.72rem;
     font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 0.06em;
+    letter-spacing: 0.08em;
     color: var(--text);
 }
 
@@ -1457,14 +1932,17 @@ pre,
     height: 9px;
     border-radius: 50%;
     display: inline-block;
+    flex-shrink: 0;
 }
 
 .col-dot.entry {
     background: var(--accent);
+    box-shadow: 0 0 0 4px rgba(77, 180, 255, 0.18);
 }
 
 .col-dot.exit {
     background: var(--green);
+    box-shadow: 0 0 0 4px rgba(50, 210, 150, 0.18);
 }
 
 .reason-chips {
@@ -1474,18 +1952,262 @@ pre,
 }
 
 .reason-chip {
-    padding: 0.32rem 0.6rem;
-    font-size: 0.76rem;
+    padding: 0.36rem 0.72rem;
+    font-size: 0.74rem;
+    font-weight: 600;
     border-radius: 999px;
-    background: var(--chip-bg);
-    border: 1px solid var(--chip-border);
+    background: var(--tm-card);
+    border: 1px solid var(--tm-hairline);
+    color: var(--muted);
+    cursor: pointer;
+    transition:
+        color 0.16s ease,
+        border-color 0.16s ease,
+        background 0.16s ease,
+        transform 0.16s ease,
+        box-shadow 0.16s ease;
+}
+
+.reason-chip:hover {
     color: var(--text);
+    border-color: var(--tm-hairline-strong);
+    transform: translateY(-1px);
 }
 
 .reason-chip.active {
-    background: var(--accent);
+    background: linear-gradient(135deg, var(--accent), var(--accent-strong));
+    border-color: transparent;
+    color: var(--tm-on-accent);
+    box-shadow: 0 8px 18px -8px var(--tm-glow);
+}
+
+.trade-modal .char-counter {
+    justify-self: end;
+    font-size: 0.66rem;
+    color: var(--muted);
+}
+
+/* ---- Footer ---- */
+.trade-modal-foot {
+    display: grid;
+    gap: 0.7rem;
+    padding: 0.95rem 1.5rem 1.15rem;
+    border-top: 1px solid var(--tm-hairline);
+    background: linear-gradient(
+        180deg,
+        rgba(255, 255, 255, 0.035),
+        rgba(0, 0, 0, 0.18)
+    );
+}
+
+:root[data-theme="light"] .trade-modal-foot {
+    background: linear-gradient(
+        180deg,
+        rgba(23, 60, 92, 0.025),
+        rgba(23, 60, 92, 0.06)
+    );
+}
+
+.tm-foot-main {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.trade-modal .pnl-preview {
+    grid-column: auto;
+    flex: 1 1 340px;
+    display: grid;
+    gap: 0.28rem;
+    padding: 0.6rem 0.9rem 0.7rem;
+    border-radius: 14px;
+    border: 1px solid var(--tm-hairline);
+    background: var(--tm-card);
+    transition:
+        border-color 0.2s ease,
+        background 0.2s ease;
+}
+
+.trade-modal .pnl-preview.tone-profit {
+    border-color: rgba(50, 210, 150, 0.38);
+    background: var(--tm-tint-green);
+}
+
+.trade-modal .pnl-preview.tone-loss {
+    border-color: rgba(255, 106, 106, 0.38);
+    background: var(--tm-tint-red);
+}
+
+.pnl-preview-label {
+    font-size: 0.59rem;
+    font-weight: 700;
+    letter-spacing: 0.11em;
+    text-transform: uppercase;
+    color: var(--muted);
+}
+
+.pnl-preview-value {
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-size: 1.5rem;
+    font-variant-numeric: tabular-nums;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+}
+
+.tone-profit .pnl-preview-value {
+    color: var(--green);
+}
+
+.tone-loss .pnl-preview-value {
+    color: var(--red);
+}
+
+.pnl-preview-stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.15rem 0.95rem;
+    font-size: 0.72rem;
+    color: var(--muted);
+}
+
+.pnl-preview-stats span {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.35rem;
+}
+
+.pnl-preview-stats em {
+    font-style: normal;
+    font-size: 0.59rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    opacity: 0.8;
+}
+
+.pnl-preview-stats b {
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    color: var(--text);
+}
+
+.trade-modal .risk-alert {
+    grid-column: auto;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.7rem;
+    padding: 0.7rem 0.85rem;
+    border-radius: 13px;
+    font-size: 0.82rem;
+    color: var(--text);
+    background: rgba(255, 207, 102, 0.11);
+    border: 1px solid rgba(255, 207, 102, 0.4);
+}
+
+.risk-alert-icon {
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: var(--warn);
+    color: #2a1d00;
+    font-weight: 800;
+    font-size: 0.78rem;
+}
+
+.trade-modal .risk-alert p {
+    margin: 0.12rem 0;
+}
+
+.trade-modal .action-row {
+    grid-column: auto;
+    display: flex;
+    gap: 0.6rem;
+    flex-shrink: 0;
+}
+
+.trade-modal .action-row button {
+    padding: 0.72rem 1.35rem;
+    border-radius: 12px;
+    font-size: 0.87rem;
+    font-weight: 600;
+}
+
+.trade-modal .action-row .secondary {
+    background: transparent;
+    border: 1px solid var(--tm-hairline-strong);
+    color: var(--muted);
+    transition:
+        color 0.16s ease,
+        border-color 0.16s ease,
+        background 0.16s ease;
+}
+
+.trade-modal .action-row .secondary:hover {
+    color: var(--text);
     border-color: var(--accent);
-    color: #041018;
+    background: var(--tm-card-hover);
+}
+
+.tm-submit {
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(135deg, var(--accent), var(--accent-strong));
+    border-color: transparent;
+    color: var(--tm-on-accent);
+    box-shadow: 0 12px 26px -12px var(--tm-glow);
+    transition:
+        transform 0.16s ease,
+        box-shadow 0.16s ease,
+        filter 0.16s ease;
+}
+
+.tm-submit:hover:not(:disabled) {
+    transform: translateY(-1px);
+    filter: brightness(1.07);
+    box-shadow: 0 16px 32px -12px var(--tm-glow);
+}
+
+.tm-submit:active:not(:disabled) {
+    transform: translateY(0);
+}
+
+.tm-submit:disabled {
+    opacity: 0.42;
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
+.tm-submit::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    transform: translateX(-120%);
+    background: linear-gradient(
+        115deg,
+        transparent 32%,
+        rgba(255, 255, 255, 0.34) 50%,
+        transparent 68%
+    );
+    pointer-events: none;
+}
+
+.tm-submit:hover:not(:disabled)::after {
+    animation: tmShine 0.8s ease;
+}
+
+/* ---- Responsive ---- */
+@media (max-width: 900px) {
+    .form-row-4,
+    .form-row-5,
+    .form-row-6 {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
 }
 
 @media (max-width: 780px) {
@@ -1496,9 +2218,36 @@ pre,
     .discipline-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
+
+    .strategy-row {
+        grid-template-columns: 1fr;
+    }
 }
 
-@media (max-width: 520px) {
+@media (max-width: 560px) {
+    .trade-modal-overlay {
+        padding: 0;
+        place-items: end center;
+    }
+
+    .trade-modal {
+        max-width: 100%;
+        max-height: 94vh;
+        border-radius: 22px 22px 0 0;
+        border-bottom: none;
+    }
+
+    .trade-modal-head,
+    .trade-modal-body,
+    .trade-modal-foot {
+        padding-left: 1.05rem;
+        padding-right: 1.05rem;
+    }
+
+    .tm-live-pnl {
+        display: none;
+    }
+
     .form-row-2,
     .form-row-3,
     .form-row-4,
@@ -1507,6 +2256,32 @@ pre,
     .strategy-row,
     .discipline-grid {
         grid-template-columns: 1fr;
+    }
+
+    .tm-foot-main {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .trade-modal .action-row button {
+        flex: 1;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .trade-modal,
+    .trade-modal-overlay,
+    .instrument-manager {
+        animation: none;
+    }
+
+    .trade-modal *,
+    .trade-modal-close {
+        transition: none;
+    }
+
+    .tm-submit:hover:not(:disabled)::after {
+        animation: none;
     }
 }
 
