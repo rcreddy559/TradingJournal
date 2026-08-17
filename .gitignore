@@ -31,3 +31,6 @@ env/.env.development.local
 # OS files
 .DS_Store
 Thumbs.db
+
+# brainstorm session artifacts
+.superpowers/
