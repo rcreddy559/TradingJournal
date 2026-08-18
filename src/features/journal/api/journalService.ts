@@ -12,6 +12,7 @@ const STRATEGIES_KEY = "trading-journal-strategies-v1";
 const INSTRUMENTS_KEY = "trading-journal-instruments-v1";
 const SETTINGS_KEY = "trading-journal-settings-v1";
 const PROFILE_KEY = "trading-journal-profile-v1";
+const DAY_NOTES_KEY = "trading-journal-day-notes-v1";
 
 export const DEFAULT_SETTINGS: AppSettings = {
   dailyLossLimit: 5000,
@@ -212,6 +213,14 @@ const deleteProfile = (): void => {
   journalDb.write<TraderProfile | null>(PROFILE_KEY, null);
 };
 
+const getDayNotes = (): Record<string, string> => {
+  return journalDb.read<Record<string, string>>(DAY_NOTES_KEY, {});
+};
+
+const saveDayNotes = (notes: Record<string, string>): void => {
+  journalDb.write(DAY_NOTES_KEY, notes);
+};
+
 export const journalService = {
   getTrades,
   saveTrades,
@@ -224,4 +233,6 @@ export const journalService = {
   getProfile,
   saveProfile,
   deleteProfile,
+  getDayNotes,
+  saveDayNotes,
 };
