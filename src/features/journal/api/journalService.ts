@@ -1,6 +1,7 @@
 import { journalDb } from "../db/journalDb";
 import {
   AppSettings,
+  ChartExercise,
   InstrumentDef,
   Strategy,
   Trade,
@@ -10,6 +11,7 @@ import {
 const TRADES_KEY = "trading-journal-trades-v1";
 const STRATEGIES_KEY = "trading-journal-strategies-v1";
 const INSTRUMENTS_KEY = "trading-journal-instruments-v1";
+const EXERCISES_KEY = "trading-journal-exercises-v1";
 const SETTINGS_KEY = "trading-journal-settings-v1";
 const PROFILE_KEY = "trading-journal-profile-v1";
 const DAY_NOTES_KEY = "trading-journal-day-notes-v1";
@@ -191,6 +193,14 @@ const saveInstruments = (instruments: InstrumentDef[]): void => {
   journalDb.write(INSTRUMENTS_KEY, instruments);
 };
 
+const getExercises = (): ChartExercise[] => {
+  return journalDb.read<ChartExercise[]>(EXERCISES_KEY, []);
+};
+
+const saveExercises = (exercises: ChartExercise[]): void => {
+  journalDb.write(EXERCISES_KEY, exercises);
+};
+
 const getSettings = (): AppSettings => {
   const settings = journalDb.read<AppSettings | null>(SETTINGS_KEY, null);
   if (!settings) return DEFAULT_SETTINGS;
@@ -228,6 +238,8 @@ export const journalService = {
   saveStrategies,
   getInstruments,
   saveInstruments,
+  getExercises,
+  saveExercises,
   getSettings,
   saveSettings,
   getProfile,

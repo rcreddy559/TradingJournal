@@ -17,10 +17,11 @@ For the end-user feature catalogue and backlog see [`.github/FEATURES.md`](.gith
 
 ```
 TradingJournal/
+├─ extension/              # Chrome Extension (MV3) source, copied into dist/
+│  ├─ manifest.json        # MV3 manifest
+│  └─ background.js        # Extension service worker (opens/focuses app tab)
 ├─ public/                 # Static assets copied as-is into dist/
-│  ├─ manifest.json        # Chrome Extension (MV3) manifest
 │  ├─ manifest.webmanifest # PWA manifest
-│  ├─ background.js        # Extension service worker (opens/focuses app tab)
 │  ├─ sw.js               # PWA service worker (offline app shell)
 │  └─ icons/              # Generated PNG icons (16/32/48/128)
 ├─ scripts/
@@ -157,11 +158,16 @@ listed in [`README.md`](README.md).
 ## Chrome Extension (MV3)
 
 The extension reuses the full app in a browser tab. Clicking the toolbar icon
-opens or focuses the app tab via `public/background.js`.
+opens or focuses the app tab via `extension/background.js`.
 
-- Manifest: `public/manifest.json` (`manifest_version: 3`, `storage` permission)
-- Background service worker: `public/background.js`
+- Manifest: `extension/manifest.json` (`manifest_version: 3`, `storage` permission)
+- Background service worker: `extension/background.js`
 - Icons: `public/icons/icon{16,32,48,128}.png` (generated from SVG)
+
+Both files are copied into `dist/` by the `copy-extension-artifacts` Vite plugin
+during every build. They live outside `public/` on purpose — without a
+`manifest.json`, `public/` cannot be loaded as an unpacked extension at all, so
+it can never be mistaken for the real build output.
 
 ### Build & load
 
@@ -174,9 +180,10 @@ opens or focuses the app tab via `public/background.js`.
 4. Remove any previously broken unpacked load of this app.
 5. Click **Load unpacked** and select the **`TradingJournal/dist`** folder.
 
-> Load `dist/`, **not** `public/`. Loading `public/` causes
-> `ERR_FILE_NOT_FOUND` because the built `index.html` and hashed assets only
-> exist in `dist/`.
+> The folder picker reopens wherever you last browsed, so confirm you are
+> actually inside `dist` before clicking **Select Folder**. Verify afterwards
+> that the extension card's ID matches the one derived from the `dist` path — a
+> different ID means a different folder was loaded.
 
 The loaded folder should contain:
 
@@ -184,6 +191,7 @@ The loaded folder should contain:
 dist/index.html
 dist/manifest.json
 dist/background.js
+dist/assets/*
 dist/icons/*
 ```
 

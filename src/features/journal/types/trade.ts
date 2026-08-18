@@ -103,3 +103,27 @@ export interface AppSettings {
   dailyLossLimit: number;
   maxTradesPerDay: number;
 }
+
+export type MarketBias = "BULLISH" | "BEARISH" | "NEUTRAL" | "SIDEWAYS";
+
+/**
+ * A chart-reading practice entry. Kept separate from `Trade` because it records
+ * how a chart was read on a given day, whether or not a trade was taken.
+ */
+export interface ChartExercise {
+  id: string;
+  exerciseDate: string;
+  instrument: string;
+  title: string;
+  bias: MarketBias;
+  timeframe?: string;
+  description: string;
+  strategy?: string;
+  keyLevels?: string;
+  outcome?: string;
+  confidence?: number;
+  tags?: string[];
+  screenshots?: string[];
+  createdAt: string;
+  updatedAt: string;
+}

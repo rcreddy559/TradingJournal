@@ -18,6 +18,7 @@ const initialState: JournalState = {
   trades: [],
   strategies: [],
   instruments: [],
+  exercises: [],
   settings: journalService.getSettings(),
   profile: null,
   filters: {
@@ -36,6 +37,7 @@ const getInitialState = (): JournalState => {
     trades: journalService.getTrades(),
     strategies: journalService.getStrategies(),
     instruments: journalService.getInstruments(),
+    exercises: journalService.getExercises(),
     settings: journalService.getSettings(),
     profile: journalService.getProfile(),
   };

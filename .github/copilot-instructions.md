@@ -53,8 +53,8 @@ There is currently **no lint script** in `package.json`.
 - Navigation is not route-driven; page selection is `state.ui.view` (`AppView` union in `shared/types/app.ts`).
   - `ADD_TRADE` renders `TradesPage` and `AddTradePage` together (trade form behaves like a modal over list context).
 - The app targets both **PWA** and **Chrome Extension (MV3)**:
-  - `vite.config.ts` uses `base: "./"` so extension asset URLs resolve correctly.
-  - `public/manifest.json` + `public/background.js` are extension artifacts.
+  - `vite.config.ts` uses `base: "./"` so extension asset URLs resolve correctly, and its `copy-extension-artifacts` plugin copies `extension/` into `dist/` on every build.
+  - `extension/manifest.json` + `extension/background.js` are the MV3 artifacts; they are kept out of `public/` so that folder can never be loaded as an unpacked extension by mistake.
   - `public/sw.js` powers offline PWA behavior; `useServiceWorker` skips SW registration on `chrome-extension:` protocol.
 
 ## Key codebase conventions

@@ -80,6 +80,25 @@ export const journalReducer = (
           (instrument) => instrument.id !== action.payload,
         ),
       };
+    case "ADD_EXERCISE":
+      return {
+        ...state,
+        exercises: [action.payload, ...state.exercises],
+      };
+    case "UPDATE_EXERCISE":
+      return {
+        ...state,
+        exercises: state.exercises.map((exercise) =>
+          exercise.id === action.payload.id ? action.payload : exercise,
+        ),
+      };
+    case "DELETE_EXERCISE":
+      return {
+        ...state,
+        exercises: state.exercises.filter(
+          (exercise) => exercise.id !== action.payload,
+        ),
+      };
     case "SET_SETTINGS":
       return {
         ...state,
@@ -101,6 +120,7 @@ export const journalReducer = (
         trades: action.payload.trades,
         strategies: action.payload.strategies,
         instruments: action.payload.instruments ?? state.instruments,
+        exercises: action.payload.exercises ?? state.exercises,
         settings: action.payload.settings ?? state.settings,
         profile:
           action.payload.profile !== undefined

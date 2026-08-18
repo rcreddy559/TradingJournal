@@ -3,6 +3,7 @@ import { DEFAULT_SETTINGS, journalService } from "../api/journalService";
 import { AppView } from "../../../shared/types/app";
 import {
   AppSettings,
+  ChartExercise,
   InstrumentDef,
   MistakeType,
   Strategy,
@@ -143,6 +144,28 @@ export const useJournalActions = () => {
     dispatch({ type: "DELETE_INSTRUMENT", payload: instrumentId });
   };
 
+  const createExercise = (exercise: ChartExercise) => {
+    const nextExercises = [exercise, ...state.exercises];
+    journalService.saveExercises(nextExercises);
+    dispatch({ type: "ADD_EXERCISE", payload: exercise });
+  };
+
+  const updateExercise = (exercise: ChartExercise) => {
+    const nextExercises = state.exercises.map((item) =>
+      item.id === exercise.id ? exercise : item,
+    );
+    journalService.saveExercises(nextExercises);
+    dispatch({ type: "UPDATE_EXERCISE", payload: exercise });
+  };
+
+  const deleteExercise = (exerciseId: string) => {
+    const nextExercises = state.exercises.filter(
+      (exercise) => exercise.id !== exerciseId,
+    );
+    journalService.saveExercises(nextExercises);
+    dispatch({ type: "DELETE_EXERCISE", payload: exerciseId });
+  };
+
   const saveSettings = (settings: AppSettings) => {
     const normalized: AppSettings = {
       dailyLossLimit: Number.isFinite(settings.dailyLossLimit)
@@ -193,6 +216,13 @@ export const useJournalActions = () => {
       journalService.saveInstruments(backup.instruments);
     }
 
+    // Older backups predate chart exercises, so only replace them when the
+    // payload actually carries the key.
+    const nextExercises = backup.exercises ?? state.exercises;
+    if (backup.exercises) {
+      journalService.saveExercises(backup.exercises);
+    }
+
     // Only overwrite the profile when the backup actually carries one, so an
     // older backup without a profile leaves the current profile untouched.
     const nextProfile =
@@ -211,11 +241,49 @@ export const useJournalActions = () => {
         trades: backup.trades,
         strategies: backup.strategies,
         instruments: nextInstruments,
+        exercises: nextExercises,
         settings,
         profile: nextProfile,
       },
     });
     dispatch({ type: "SET_VIEW", payload: "DASHBOARD" });
+  };
+
+  /**
+   * Adopts a snapshot pulled from remote sync. Unlike `restoreBackup` this is a
+   * background operation, so it persists and swaps the data without navigating
+   * the user away from whatever they are looking at.
+   */
+  const applyRemoteSnapshot = (snapshot: {
+    trades: Trade[];
+    strategies: Strategy[];
+    instruments: InstrumentDef[];
+    exercises: ChartExercise[];
+    settings: AppSettings;
+    profile: TraderProfile | null;
+  }) => {
+    journalService.saveTrades(snapshot.trades);
+    journalService.saveStrategies(snapshot.strategies);
+    journalService.saveInstruments(snapshot.instruments);
+    journalService.saveExercises(snapshot.exercises);
+    journalService.saveSettings(snapshot.settings);
+    if (snapshot.profile) {
+      journalService.saveProfile(snapshot.profile);
+    } else {
+      journalService.deleteProfile();
+    }
+
+    dispatch({
+      type: "REPLACE_ALL_DATA",
+      payload: {
+        trades: snapshot.trades,
+        strategies: snapshot.strategies,
+        instruments: snapshot.instruments,
+        exercises: snapshot.exercises,
+        settings: snapshot.settings,
+        profile: snapshot.profile,
+      },
+    });
   };
 
   const importTradesFromCsvText = (
@@ -368,10 +436,14 @@ export const useJournalActions = () => {
     createInstrument,
     updateInstrument,
     deleteInstrument,
+    createExercise,
+    updateExercise,
+    deleteExercise,
     saveSettings,
     saveProfile,
     deleteProfile,
     restoreBackup,
+    applyRemoteSnapshot,
     importTradesFromCsvText,
   };
 };
