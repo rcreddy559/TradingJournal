@@ -66,71 +66,83 @@ export default function AddTradePage() {
   } = useJournalActions();
   const { notify } = useToast();
   const nowDate = new Date().toISOString().slice(0, 10);
-  const [tradeDate, setTradeDate] = useState(nowDate);
   const initialInstrument = instruments[0]?.symbol ?? DEFAULT_INSTRUMENT;
-  const [instrument, setInstrument] = useState<Trade["instrument"]>(
-    initialInstrument,
-  );
-  const [strikePrice, setStrikePrice] = useState("");
-  const [optionType, setOptionType] = useState<Trade["optionType"]>("CE");
-  const [side, setSide] = useState<TradeSide>("BUY");
-  const [entryTime, setEntryTime] = useState(getCurrentTimeInputValue);
-  const [exitTime, setExitTime] = useState(getCurrentTimeInputValue);
-  const [buyPrice, setBuyPrice] = useState("");
-  const [sellPrice, setSellPrice] = useState("");
-  const [charges, setCharges] = useState("0");
-  const [strategyId, setStrategyId] = useState("");
-  const [notes, setNotes] = useState("");
 
-  const [emotionBefore, setEmotionBefore] = useState<TradeEmotion>("CALM");
-  const [emotionAfter, setEmotionAfter] = useState<TradeEmotion>("CALM");
-  const [mistakeType, setMistakeType] = useState<MistakeType>("NONE");
-  const [executionQuality, setExecutionQuality] =
-    useState<ExecutionQuality>("GOOD");
-  const [confidenceScore, setConfidenceScore] = useState("3");
-  const [entryReason, setEntryReason] = useState("");
+  const [form, setForm] = useState({
+    tradeDate: nowDate,
+    instrument: initialInstrument as Trade["instrument"],
+    strikePrice: "",
+    optionType: "CE" as Trade["optionType"],
+    side: "BUY" as TradeSide,
+    entryTime: getCurrentTimeInputValue(),
+    exitTime: getCurrentTimeInputValue(),
+    buyPrice: "",
+    sellPrice: "",
+    charges: "0",
+    strategyId: "",
+    notes: "",
+    emotionBefore: "CALM" as TradeEmotion,
+    emotionAfter: "CALM" as TradeEmotion,
+    mistakeType: "NONE" as MistakeType,
+    executionQuality: "GOOD" as ExecutionQuality,
+    confidenceScore: "3",
+    entryReason: "",
+    reasonCategory: "",
+  });
 
-  const [reasonCategory, setReasonCategory] = useState("");
+  const setField = <K extends keyof typeof form>(key: K, value: (typeof form)[K]) =>
+    setForm((prev) => ({ ...prev, [key]: value }));
+
+  const {
+    tradeDate, instrument, strikePrice, optionType, side,
+    entryTime, exitTime, buyPrice, sellPrice, charges,
+    strategyId, notes, emotionBefore, emotionAfter, mistakeType,
+    executionQuality, confidenceScore, entryReason, reasonCategory,
+  } = form;
+
   const quantity = useMemo(
     () => getQuantityForSymbol(instruments, instrument),
     [instruments, instrument],
   );
 
   // Inline instrument management (dynamic CRUD from within the Add Trade form).
-  const [managingInstruments, setManagingInstruments] = useState(false);
-  const [instrumentDraft, setInstrumentDraft] = useState("");
-  const [editingInstrumentId, setEditingInstrumentId] = useState<string | null>(
-    null,
-  );
+  const [uiState, setUiState] = useState({
+    managingInstruments: false,
+    instrumentDraft: "",
+    editingInstrumentId: null as string | null,
+    editingRules: false,
+    rulesDraft: "",
+  });
 
-  // Inline editing of the selected strategy's rules (shared strategy record).
-  const [editingRules, setEditingRules] = useState(false);
-  const [rulesDraft, setRulesDraft] = useState("");
+  const setUiField = <K extends keyof typeof uiState>(key: K, value: (typeof uiState)[K]) =>
+    setUiState((prev) => ({ ...prev, [key]: value }));
+
+  const { managingInstruments, instrumentDraft, editingInstrumentId, editingRules, rulesDraft } = uiState;
 
   useEffect(() => {
     if (!editingTrade) return;
 
-    setTradeDate(editingTrade.tradeDate);
-    setInstrument(editingTrade.instrument);
-    setStrikePrice(
-      editingTrade.strikePrice ? String(editingTrade.strikePrice) : "",
-    );
-    setOptionType(editingTrade.optionType ?? "CE");
-    setSide(editingTrade.side ?? "BUY");
-    setEntryTime(toTimeInputValue(editingTrade.entryTime));
-    setExitTime(toTimeInputValue(editingTrade.exitTime));
-    setBuyPrice(String(editingTrade.buyPrice));
-    setSellPrice(String(editingTrade.sellPrice));
-    setCharges(String(editingTrade.charges));
-    setStrategyId(editingTrade.strategyId);
-    setNotes(editingTrade.notes ?? "");
-
-    setEmotionBefore(editingTrade.emotionBefore ?? "CALM");
-    setEmotionAfter(editingTrade.emotionAfter ?? "CALM");
-    setMistakeType(editingTrade.mistakeType ?? "NONE");
-    setExecutionQuality(editingTrade.executionQuality ?? "GOOD");
-    setConfidenceScore(String(editingTrade.confidenceScore ?? 3));
-    setEntryReason(editingTrade.entryReason ?? "");
+    setForm((prev) => ({
+      ...prev,
+      tradeDate: editingTrade.tradeDate,
+      instrument: editingTrade.instrument,
+      strikePrice: editingTrade.strikePrice ? String(editingTrade.strikePrice) : "",
+      optionType: editingTrade.optionType ?? "CE",
+      side: editingTrade.side ?? "BUY",
+      entryTime: toTimeInputValue(editingTrade.entryTime),
+      exitTime: toTimeInputValue(editingTrade.exitTime),
+      buyPrice: String(editingTrade.buyPrice),
+      sellPrice: String(editingTrade.sellPrice),
+      charges: String(editingTrade.charges),
+      strategyId: editingTrade.strategyId,
+      notes: editingTrade.notes ?? "",
+      emotionBefore: editingTrade.emotionBefore ?? "CALM",
+      emotionAfter: editingTrade.emotionAfter ?? "CALM",
+      mistakeType: editingTrade.mistakeType ?? "NONE",
+      executionQuality: editingTrade.executionQuality ?? "GOOD",
+      confidenceScore: String(editingTrade.confidenceScore ?? 3),
+      entryReason: editingTrade.entryReason ?? "",
+    }));
   }, [editingTrade]);
 
   const pnlPreview = useMemo(() => {
@@ -177,8 +189,7 @@ export default function AddTradePage() {
   // Leaving edit mode when the strategy changes avoids saving a draft against
   // the wrong strategy.
   useEffect(() => {
-    setEditingRules(false);
-    setRulesDraft("");
+    setUiState((prev) => ({ ...prev, editingRules: false, rulesDraft: "" }));
   }, [strategyId]);
 
   const todayTradeCount = useMemo(() => {
@@ -223,26 +234,27 @@ export default function AddTradePage() {
   ]);
 
   const resetForm = () => {
-    setBuyPrice("");
-    setSellPrice("");
-    setStrikePrice("");
-    setNotes("");
-    setEntryTime(getCurrentTimeInputValue());
-    setExitTime(getCurrentTimeInputValue());
-    setCharges("0");
-    setOptionType("CE");
-    setSide("BUY");
-    setInstrument(instruments[0]?.symbol ?? "");
-    setStrategyId("");
-    setTradeDate(nowDate);
-
-    setEmotionBefore("CALM");
-    setEmotionAfter("CALM");
-    setMistakeType("NONE");
-    setExecutionQuality("GOOD");
-    setConfidenceScore("3");
-    setEntryReason("");
-    setReasonCategory("");
+    setForm({
+      tradeDate: nowDate,
+      instrument: instruments[0]?.symbol ?? "",
+      strikePrice: "",
+      optionType: "CE",
+      side: "BUY",
+      entryTime: getCurrentTimeInputValue(),
+      exitTime: getCurrentTimeInputValue(),
+      buyPrice: "",
+      sellPrice: "",
+      charges: "0",
+      strategyId: "",
+      notes: "",
+      emotionBefore: "CALM",
+      emotionAfter: "CALM",
+      mistakeType: "NONE",
+      executionQuality: "GOOD",
+      confidenceScore: "3",
+      entryReason: "",
+      reasonCategory: "",
+    });
   };
 
   const handleClose = () => {
@@ -273,8 +285,7 @@ export default function AddTradePage() {
   };
 
   const resetInstrumentDraft = () => {
-    setInstrumentDraft("");
-    setEditingInstrumentId(null);
+    setUiState((prev) => ({ ...prev, instrumentDraft: "", editingInstrumentId: null }));
   };
 
   const handleSaveInstrument = () => {
@@ -296,25 +307,22 @@ export default function AddTradePage() {
         createdAt: new Date().toISOString(),
       };
       createInstrument(created);
-      setInstrument(created.symbol);
+      setField("instrument", created.symbol);
     }
     resetInstrumentDraft();
   };
 
   const handleEditInstrument = (item: InstrumentDef) => {
-    setEditingInstrumentId(item.id);
-    setInstrumentDraft(item.name);
+    setUiState((prev) => ({ ...prev, editingInstrumentId: item.id, instrumentDraft: item.name }));
   };
 
   const handleStartEditRules = () => {
     if (!selectedStrategy) return;
-    setRulesDraft(selectedStrategy.rules ?? "");
-    setEditingRules(true);
+    setUiState((prev) => ({ ...prev, rulesDraft: selectedStrategy.rules ?? "", editingRules: true }));
   };
 
   const handleCancelEditRules = () => {
-    setEditingRules(false);
-    setRulesDraft("");
+    setUiState((prev) => ({ ...prev, editingRules: false, rulesDraft: "" }));
   };
 
   const handleSaveRules = () => {
@@ -336,7 +344,7 @@ export default function AddTradePage() {
       const fallback = instruments.find(
         (candidate) => candidate.id !== item.id,
       );
-      setInstrument(fallback?.symbol ?? "");
+      setField("instrument", fallback?.symbol ?? "");
     }
   };
 
@@ -495,7 +503,7 @@ export default function AddTradePage() {
                 type="button"
                 className="tf-manage-link"
                 onClick={() => {
-                  setManagingInstruments((open) => !open);
+                  setUiState((prev) => ({ ...prev, managingInstruments: !prev.managingInstruments }));
                   resetInstrumentDraft();
                 }}
               >
@@ -509,7 +517,7 @@ export default function AddTradePage() {
                 <select
                   value={instrument}
                   onChange={(event) =>
-                    setInstrument(event.target.value as Trade["instrument"])
+                    setField("instrument", event.target.value as Trade["instrument"])
                   }
                 >
                   {instruments.length === 0 && (
@@ -527,7 +535,7 @@ export default function AddTradePage() {
                 <input
                   type="number"
                   value={strikePrice}
-                  onChange={(event) => setStrikePrice(event.target.value)}
+                  onChange={(event) => setField("strikePrice", event.target.value)}
                   placeholder="e.g. 24500"
                 />
               </label>
@@ -548,7 +556,7 @@ export default function AddTradePage() {
                     type="number"
                     step="0.01"
                     value={buyPrice}
-                    onChange={(event) => setBuyPrice(event.target.value)}
+                    onChange={(event) => setField("buyPrice", event.target.value)}
                     placeholder="500.00"
                     required
                   />
@@ -561,7 +569,7 @@ export default function AddTradePage() {
                     type="number"
                     step="0.01"
                     value={sellPrice}
-                    onChange={(event) => setSellPrice(event.target.value)}
+                    onChange={(event) => setField("sellPrice", event.target.value)}
                     placeholder="2550.00"
                   />
                 </span>
@@ -578,7 +586,7 @@ export default function AddTradePage() {
                   <input
                     type="text"
                     value={instrumentDraft}
-                    onChange={(event) => setInstrumentDraft(event.target.value)}
+                    onChange={(event) => setUiField("instrumentDraft", event.target.value)}
                     onKeyDown={(event) => {
                       if (event.key === "Enter") {
                         event.preventDefault();
@@ -665,7 +673,7 @@ export default function AddTradePage() {
                 <span className="field-caption">Strategy *</span>
                 <select
                   value={strategyId}
-                  onChange={(event) => setStrategyId(event.target.value)}
+                  onChange={(event) => setField("strategyId", event.target.value)}
                   required
                 >
                   <option value="">Select strategy…</option>
@@ -686,7 +694,7 @@ export default function AddTradePage() {
                   <div className="strategy-rules-editor">
                     <textarea
                       value={rulesDraft}
-                      onChange={(event) => setRulesDraft(event.target.value)}
+                      onChange={(event) => setUiField("rulesDraft", event.target.value)}
                       onKeyDown={(event) => {
                         if (event.key === "Escape") {
                           event.preventDefault();
@@ -752,7 +760,7 @@ export default function AddTradePage() {
                 <select
                   value={optionType}
                   onChange={(event) =>
-                    setOptionType(event.target.value as Trade["optionType"])
+                    setField("optionType", event.target.value as Trade["optionType"])
                   }
                 >
                   <option value="CE">CE</option>
@@ -763,7 +771,7 @@ export default function AddTradePage() {
                 <span className="field-caption">Long / Short</span>
                 <select
                   value={side}
-                  onChange={(event) => setSide(event.target.value as TradeSide)}
+                  onChange={(event) => setField("side", event.target.value as TradeSide)}
                 >
                   <option value="BUY">Long</option>
                   <option value="SELL">Short</option>
@@ -776,7 +784,7 @@ export default function AddTradePage() {
                     type="number"
                     step="0.01"
                     value={charges}
-                    onChange={(event) => setCharges(event.target.value)}
+                    onChange={(event) => setField("charges", event.target.value)}
                   />
                 </span>
               </label>
@@ -799,7 +807,7 @@ export default function AddTradePage() {
                 <input
                   type="date"
                   value={tradeDate}
-                  onChange={(event) => setTradeDate(event.target.value)}
+                  onChange={(event) => setField("tradeDate", event.target.value)}
                   required
                 />
               </label>
@@ -808,7 +816,7 @@ export default function AddTradePage() {
                 <input
                   type="time"
                   value={entryTime}
-                  onChange={(event) => setEntryTime(event.target.value)}
+                  onChange={(event) => setField("entryTime", event.target.value)}
                 />
               </label>
               <label className="tf-field">
@@ -816,7 +824,7 @@ export default function AddTradePage() {
                 <input
                   type="time"
                   value={exitTime}
-                  onChange={(event) => setExitTime(event.target.value)}
+                  onChange={(event) => setField("exitTime", event.target.value)}
                 />
               </label>
             </div>
@@ -849,9 +857,10 @@ export default function AddTradePage() {
                     }`}
                     aria-pressed={reasonCategory === category}
                     onClick={() =>
-                      setReasonCategory((prev) =>
-                        prev === category ? "" : category,
-                      )
+                      setForm((prev) => ({
+                        ...prev,
+                        reasonCategory: prev.reasonCategory === category ? "" : category,
+                      }))
                     }
                   >
                     {category}
@@ -860,7 +869,7 @@ export default function AddTradePage() {
               </div>
               <select
                 value={entryReason}
-                onChange={(event) => setEntryReason(event.target.value)}
+                onChange={(event) => setField("entryReason", event.target.value)}
                 aria-label="Reason for trade"
               >
                 <option value="">
@@ -885,7 +894,7 @@ export default function AddTradePage() {
                 <select
                   value={emotionBefore}
                   onChange={(event) =>
-                    setEmotionBefore(event.target.value as TradeEmotion)
+                    setField("emotionBefore", event.target.value as TradeEmotion)
                   }
                 >
                   {EMOTION_OPTIONS.map((emotion) => (
@@ -903,7 +912,7 @@ export default function AddTradePage() {
                   min={1}
                   max={5}
                   value={confidenceScore}
-                  onChange={(event) => setConfidenceScore(event.target.value)}
+                  onChange={(event) => setField("confidenceScore", event.target.value)}
                 />
               </label>
             </section>
@@ -921,7 +930,7 @@ export default function AddTradePage() {
                 <select
                   value={executionQuality}
                   onChange={(event) =>
-                    setExecutionQuality(event.target.value as ExecutionQuality)
+                    setField("executionQuality", event.target.value as ExecutionQuality)
                   }
                 >
                   {EXECUTION_QUALITY_OPTIONS.map((quality) => (
@@ -937,7 +946,7 @@ export default function AddTradePage() {
                 <select
                   value={emotionAfter}
                   onChange={(event) =>
-                    setEmotionAfter(event.target.value as TradeEmotion)
+                    setField("emotionAfter", event.target.value as TradeEmotion)
                   }
                 >
                   {EMOTION_OPTIONS.map((emotion) => (
@@ -953,7 +962,7 @@ export default function AddTradePage() {
                 <select
                   value={mistakeType}
                   onChange={(event) =>
-                    setMistakeType(event.target.value as MistakeType)
+                    setField("mistakeType", event.target.value as MistakeType)
                   }
                 >
                   {MISTAKE_OPTIONS.map((mistake) => (
@@ -971,7 +980,7 @@ export default function AddTradePage() {
                 <textarea
                   value={notes}
                   onChange={(event) =>
-                    setNotes(event.target.value.slice(0, NOTES_MAX_LENGTH))
+                    setField("notes", event.target.value.slice(0, NOTES_MAX_LENGTH))
                   }
                   rows={4}
                   maxLength={NOTES_MAX_LENGTH}

@@ -1,0 +1,755 @@
+/* ---------------------------------------------------------------
+   Trades page styling.
+
+   Everything is scoped under `.trades-page` so the shared rules in
+   app.css (used by other pages) stay untouched. Colours come from the
+   theme tokens declared in app.css, so both dark and light themes work.
+---------------------------------------------------------------- */
+
+.trades-page {
+    display: grid;
+    gap: 1rem;
+}
+
+/* ---- Header ---- */
+.trades-page .trades-header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.trades-page .trades-heading h2 {
+    margin: 0;
+    font-size: 1.45rem;
+    letter-spacing: 0.2px;
+}
+
+.trades-page .trades-subtitle {
+    margin: 0.28rem 0 0;
+    font-size: 0.82rem;
+    color: var(--muted);
+}
+
+.trades-page .trades-count {
+    color: var(--text);
+    font-weight: 600;
+}
+
+.trades-page .trades-dot {
+    margin: 0 0.45rem;
+    opacity: 0.55;
+}
+
+/* ---- Toolbar ---- */
+.trades-page .trades-toolbar {
+    display: grid;
+    gap: 0.75rem;
+    padding: 0.75rem;
+    border: 1px solid var(--line-soft);
+    border-radius: 14px;
+    background: var(--panel);
+    box-shadow: var(--shadow);
+}
+
+.trades-page .toolbar-primary {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.6rem;
+}
+
+.trades-page .search-field {
+    position: relative;
+    flex: 1 1 260px;
+    min-width: 200px;
+    display: flex;
+    align-items: center;
+}
+
+.trades-page .search-icon {
+    position: absolute;
+    left: 0.65rem;
+    font-size: 0.8rem;
+    opacity: 0.7;
+    pointer-events: none;
+}
+
+.trades-page .search-field input {
+    width: 100%;
+    padding: 0.55rem 2rem 0.55rem 2.1rem;
+    border-radius: 999px;
+    background: var(--input-bg);
+    font-size: 0.85rem;
+}
+
+.trades-page .search-clear {
+    position: absolute;
+    right: 0.35rem;
+    display: grid;
+    place-items: center;
+    width: 1.45rem;
+    height: 1.45rem;
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    background: transparent;
+    color: var(--muted);
+    font-size: 0.72rem;
+    line-height: 1;
+}
+
+.trades-page .search-clear:hover {
+    background: var(--row-hover);
+    color: var(--text);
+}
+
+.trades-page .segmented {
+    display: inline-flex;
+    padding: 0.18rem;
+    border: 1px solid var(--line-soft);
+    border-radius: 999px;
+    background: var(--input-bg);
+    gap: 0.15rem;
+}
+
+.trades-page .segmented-btn {
+    padding: 0.36rem 0.9rem;
+    border: none;
+    border-radius: 999px;
+    background: transparent;
+    color: var(--muted);
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.2px;
+    transition:
+        background 0.15s ease,
+        color 0.15s ease;
+}
+
+.trades-page .segmented-btn:hover {
+    color: var(--text);
+    background: var(--row-hover);
+}
+
+.trades-page .segmented-btn.is-active {
+    background: var(--accent);
+    color: #06131d;
+}
+
+.trades-page .sort-select {
+    padding: 0.5rem 0.7rem;
+    border-radius: 999px;
+    font-size: 0.8rem;
+    color: var(--muted);
+}
+
+.trades-page .filter-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.5rem 0.9rem;
+    border: 1px solid var(--line-soft);
+    border-radius: 999px;
+    background: var(--input-bg);
+    color: var(--muted);
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.trades-page .filter-toggle:hover,
+.trades-page .filter-toggle.is-open {
+    border-color: var(--accent);
+    color: var(--text);
+}
+
+.trades-page .filter-count {
+    display: grid;
+    place-items: center;
+    min-width: 1.15rem;
+    height: 1.15rem;
+    padding: 0 0.3rem;
+    border-radius: 999px;
+    background: var(--accent);
+    color: #06131d;
+    font-size: 0.66rem;
+    font-weight: 700;
+}
+
+.trades-page .toolbar-advanced {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    align-items: end;
+    gap: 0.75rem;
+    padding-top: 0.75rem;
+    border-top: 1px dashed var(--line-soft);
+    animation: fadeUp 0.18s ease;
+}
+
+.trades-page .toolbar-advanced label {
+    font-size: 0.74rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.trades-page .toolbar-advanced input,
+.trades-page .toolbar-advanced select {
+    font-size: 0.83rem;
+}
+
+.trades-page .toolbar-advanced .checkbox-label {
+    text-transform: none;
+    letter-spacing: normal;
+    font-size: 0.8rem;
+    padding-bottom: 0.5rem;
+}
+
+.trades-page .clear-filters {
+    justify-self: start;
+    padding: 0.5rem 0.9rem;
+    border: 1px solid var(--line-soft);
+    border-radius: 999px;
+    background: transparent;
+    color: var(--muted);
+    font-size: 0.78rem;
+    font-weight: 600;
+}
+
+.trades-page .clear-filters:hover:not(:disabled) {
+    border-color: var(--red);
+    color: var(--red);
+}
+
+.trades-page .clear-filters:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+/* ---- Hero KPIs ---- */
+.trades-page .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.8rem;
+}
+
+.trades-page .kpi-card {
+    position: relative;
+    display: grid;
+    gap: 0.45rem;
+    padding: 0.95rem 1.05rem;
+    border: 1px solid var(--line-soft);
+    border-radius: 14px;
+    background: var(--panel);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+}
+
+.trades-page .kpi-card::before {
+    content: "";
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 3px;
+    background: var(--line);
+}
+
+.trades-page .kpi-card.tone-profit::before {
+    background: var(--green);
+}
+
+.trades-page .kpi-card.tone-loss::before {
+    background: var(--red);
+}
+
+.trades-page .kpi-card.tone-accent::before {
+    background: var(--accent);
+}
+
+.trades-page .kpi-label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: var(--muted);
+}
+
+.trades-page .kpi-value {
+    font-size: 1.42rem;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.2px;
+    line-height: 1.15;
+}
+
+.trades-page .kpi-foot {
+    display: flex;
+    gap: 0.3rem;
+    font-size: 0.73rem;
+    color: var(--muted);
+}
+
+.trades-page .kpi-foot-sep {
+    opacity: 0.5;
+}
+
+.trades-page .kpi-bar {
+    display: block;
+    height: 5px;
+    border-radius: 999px;
+    background: var(--line-soft);
+    overflow: hidden;
+}
+
+.trades-page .kpi-bar-fill {
+    display: block;
+    height: 100%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, var(--accent), var(--green));
+    transition: width 0.3s ease;
+}
+
+/* ---- Compact stat strip ---- */
+.trades-page .stat-strip {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 0.15rem;
+    padding: 0.7rem 0.9rem;
+    border: 1px solid var(--line-soft);
+    border-radius: 12px;
+    background: var(--panel);
+}
+
+.trades-page .stat-item {
+    display: grid;
+    gap: 0.2rem;
+    padding: 0 0.75rem;
+    min-width: 0;
+    border-left: 1px solid var(--line-soft);
+}
+
+.trades-page .stat-item:first-child {
+    border-left: none;
+    padding-left: 0;
+}
+
+.trades-page .stat-label {
+    font-size: 0.66rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--muted);
+}
+
+.trades-page .stat-value {
+    font-size: 0.92rem;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.trades-page .stat-value.warn {
+    color: var(--warn);
+}
+
+/* ---- Empty state ---- */
+.trades-page .trades-empty {
+    display: grid;
+    justify-items: center;
+    gap: 0.4rem;
+    padding: 2.6rem 1rem;
+    text-align: center;
+    color: var(--muted);
+    border: 1px dashed var(--line-soft);
+    border-radius: 14px;
+    background: var(--panel);
+}
+
+.trades-page .trades-empty-icon {
+    font-size: 1.7rem;
+    opacity: 0.8;
+}
+
+.trades-page .trades-empty h3 {
+    margin: 0;
+    font-size: 1rem;
+    color: var(--text);
+}
+
+.trades-page .trades-empty p {
+    margin: 0;
+    font-size: 0.83rem;
+}
+
+.trades-page .trades-empty button {
+    margin-top: 0.6rem;
+    padding: 0.45rem 1rem;
+    font-size: 0.8rem;
+}
+
+/* ---- Trade cards ---- */
+.trades-page .trades-list {
+    display: grid;
+    gap: 0.85rem;
+}
+
+.trades-page .trade-card {
+    position: relative;
+    display: grid;
+    gap: 0.8rem;
+    padding: 1rem 1.15rem 1rem 1.35rem;
+    border: 1px solid var(--line-soft);
+    border-radius: 14px;
+    background: var(--panel);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    transition:
+        border-color 0.15s ease,
+        box-shadow 0.15s ease,
+        transform 0.15s ease;
+}
+
+.trades-page .trade-card::before {
+    content: "";
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 4px;
+}
+
+.trades-page .trade-card.is-win::before {
+    background: var(--green);
+}
+
+.trades-page .trade-card.is-loss::before {
+    background: var(--red);
+}
+
+.trades-page .trade-card:hover {
+    border-color: var(--accent);
+    transform: translateY(-2px);
+    box-shadow: 0 18px 38px rgba(0, 0, 0, 0.28);
+}
+
+.trades-page .trade-card-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.trades-page .trade-ident {
+    display: grid;
+    gap: 0.45rem;
+    min-width: 0;
+}
+
+.trades-page .trade-symbol-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.trades-page .trade-symbol {
+    font-size: 1.08rem;
+    letter-spacing: 0.2px;
+    color: var(--text);
+}
+
+.trades-page .side-badge,
+.trades-page .status-badge {
+    font-size: 0.64rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 0.18rem 0.6rem;
+    border-radius: 999px;
+    border: 1px solid transparent;
+    white-space: nowrap;
+}
+
+.trades-page .side-badge.long {
+    background: rgba(50, 210, 150, 0.16);
+    color: var(--green);
+    border-color: rgba(50, 210, 150, 0.4);
+}
+
+.trades-page .side-badge.short {
+    background: rgba(255, 106, 106, 0.14);
+    color: var(--red);
+    border-color: rgba(255, 106, 106, 0.4);
+}
+
+.trades-page .status-badge.win {
+    background: rgba(50, 210, 150, 0.16);
+    color: var(--green);
+    border-color: rgba(50, 210, 150, 0.32);
+}
+
+.trades-page .status-badge.loss {
+    background: rgba(255, 106, 106, 0.14);
+    color: var(--red);
+    border-color: rgba(255, 106, 106, 0.32);
+}
+
+.trades-page .trade-option-tag {
+    font-size: 0.7rem;
+    color: var(--muted);
+    border: 1px solid var(--line-soft);
+    border-radius: 6px;
+    padding: 0.12rem 0.45rem;
+}
+
+.trades-page .trade-submeta {
+    display: flex;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+    font-size: 0.75rem;
+    color: var(--muted);
+}
+
+.trades-page .meta-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.16rem 0.5rem;
+    border-radius: 999px;
+    background: var(--chip-bg);
+    border: 1px solid var(--line-soft);
+    white-space: nowrap;
+}
+
+.trades-page .trade-head-right {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.22rem;
+}
+
+.trades-page .trade-pnl {
+    font-size: 1.28rem;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.2px;
+    line-height: 1.1;
+}
+
+.trades-page .trade-pnl-pct {
+    font-size: 0.74rem;
+    font-variant-numeric: tabular-nums;
+    opacity: 0.85;
+}
+
+.trades-page .trade-metrics {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 0.5rem;
+    padding: 0.7rem 0.9rem;
+    border: 1px solid var(--line-soft);
+    border-radius: 12px;
+    background: var(--input-bg);
+}
+
+.trades-page .trade-metric {
+    display: grid;
+    gap: 0.18rem;
+    min-width: 0;
+    padding-left: 0.75rem;
+    border-left: 1px solid var(--line-soft);
+}
+
+.trades-page .trade-metric:first-child {
+    border-left: none;
+    padding-left: 0;
+}
+
+.trades-page .trade-metric-label {
+    font-size: 0.62rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+}
+
+.trades-page .trade-metric-value {
+    font-size: 0.93rem;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    color: var(--text);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.trades-page .trade-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+}
+
+.trades-page .trade-chips:empty {
+    display: none;
+}
+
+.trades-page .note-chip {
+    font-size: 0.68rem;
+    padding: 0.2rem 0.55rem;
+    border: 1px solid var(--chip-border);
+    border-radius: 999px;
+    color: var(--muted);
+    background: var(--chip-bg);
+}
+
+.trades-page .note-chip-warn {
+    color: var(--warn);
+    border-color: rgba(255, 207, 102, 0.4);
+    background: rgba(255, 207, 102, 0.1);
+}
+
+.trades-page .tag-chip {
+    color: var(--accent);
+    border-color: rgba(77, 180, 255, 0.35);
+}
+
+.trades-page .trade-note-text {
+    margin: 0;
+    font-size: 0.85rem;
+    line-height: 1.5;
+    color: var(--text);
+    background: var(--input-bg);
+    border: 1px solid var(--line-soft);
+    border-left: 3px solid var(--accent);
+    border-radius: 10px;
+    padding: 0.6rem 0.8rem;
+    white-space: pre-wrap;
+}
+
+.trades-page .trade-journal summary {
+    cursor: pointer;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--accent);
+    width: fit-content;
+    padding: 0.15rem 0;
+}
+
+.trades-page .trade-journal-body {
+    display: grid;
+    gap: 0.4rem;
+    margin-top: 0.55rem;
+    padding: 0.7rem 0.85rem;
+    border: 1px solid var(--line-soft);
+    border-radius: 10px;
+    background: var(--input-bg);
+    font-size: 0.82rem;
+    line-height: 1.5;
+    color: var(--muted);
+}
+
+.trades-page .trade-journal-body p {
+    margin: 0;
+}
+
+.trades-page .trade-journal-body strong {
+    color: var(--text);
+}
+
+.trades-page .trade-card-foot {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--line-soft);
+}
+
+.trades-page .trade-card-foot button {
+    padding: 0.42rem 1.1rem;
+    border-radius: 999px;
+    font-size: 0.78rem;
+    font-weight: 600;
+}
+
+/* ---- Responsive ---- */
+@media (max-width: 1100px) {
+    .trades-page .kpi-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .trades-page .stat-strip {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 0.7rem 0.15rem;
+    }
+
+    .trades-page .stat-item:nth-child(3n + 1) {
+        border-left: none;
+        padding-left: 0;
+    }
+}
+
+@media (max-width: 900px) {
+    .trades-page .trade-metrics {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 0.7rem 0.5rem;
+    }
+
+    .trades-page .trade-metric:nth-child(3n + 1) {
+        border-left: none;
+        padding-left: 0;
+    }
+}
+
+@media (max-width: 640px) {
+    .trades-page .toolbar-primary {
+        gap: 0.5rem;
+    }
+
+    .trades-page .search-field {
+        flex-basis: 100%;
+    }
+
+    .trades-page .segmented,
+    .trades-page .sort-select,
+    .trades-page .filter-toggle {
+        flex: 1 1 auto;
+    }
+
+    .trades-page .segmented {
+        justify-content: space-between;
+    }
+
+    .trades-page .kpi-value {
+        font-size: 1.2rem;
+    }
+}
+
+@media (max-width: 520px) {
+    .trades-page .kpi-grid,
+    .trades-page .stat-strip {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .trades-page .stat-strip {
+        gap: 0.7rem 0.15rem;
+    }
+
+    .trades-page .stat-item:nth-child(odd) {
+        border-left: none;
+        padding-left: 0;
+    }
+
+    .trades-page .trade-metrics {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .trades-page .trade-metric:nth-child(odd) {
+        border-left: none;
+        padding-left: 0;
+    }
+
+    .trades-page .trade-card-head {
+        flex-direction: column;
+    }
+
+    .trades-page .trade-head-right {
+        flex-direction: row;
+        align-items: baseline;
+        gap: 0.55rem;
+    }
+}

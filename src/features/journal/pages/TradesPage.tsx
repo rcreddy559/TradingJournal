@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { useJournalActions, useJournalState } from "../store/hooks";
-import { calculateRMultiple, formatCurrency } from "../lib/calculations";
+import { formatCurrency } from "../lib/calculations";
 import { applyTradeFilters } from "../lib/filters";
 import { toTimeInputValue } from "../lib/trade-form/dateTime";
 import {
@@ -8,8 +8,9 @@ import {
   EXECUTION_QUALITY_LABELS,
   MISTAKE_LABELS,
 } from "../constants/tradeForm";
-import { Instrument, Trade, TradeStatus } from "../types/trade";
+import { Instrument, MistakeType, Trade, TradeStatus } from "../types/trade";
 import { useConfirm } from "../../../shared/ui";
+import "./trades.css";
 
 const formatDateIndian = (dateValue: string): string => {
   if (!dateValue) return "-";
@@ -26,21 +27,26 @@ const formatPrice = (value: number | undefined): string =>
         value,
       );
 
+const formatPercent = (value: number): string =>
+  `${value >= 0 ? "+" : ""}${value.toFixed(2)}%`;
+
+const DATE_PRESETS = [
+  { key: "DAY", label: "Day" },
+  { key: "WEEK", label: "Week" },
+  { key: "MONTH", label: "Month" },
+] as const;
+
 function Metric({
   label,
   value,
-  tone,
 }: {
   readonly label: string;
   readonly value: React.ReactNode;
-  readonly tone?: "profit" | "loss";
 }) {
   return (
     <div className="trade-metric">
       <span className="trade-metric-label">{label}</span>
-      <span className={`trade-metric-value${tone ? ` ${tone}` : ""}`}>
-        {value}
-      </span>
+      <span className="trade-metric-value">{value}</span>
     </div>
   );
 }
@@ -69,14 +75,18 @@ export default function TradesPage() {
     "ALL",
   );
   const [statusFilter, setStatusFilter] = useState<TradeStatus | "ALL">("ALL");
+  const [filtersOpen, setFiltersOpen] = useState(false);
 
   const strategyMap = useMemo(
     () => new Map(strategies.map((s) => [s.id, s.name])),
     [strategies],
   );
 
-  const toDateInputValue = (date: Date): string =>
-    date.toISOString().slice(0, 10);
+  const toDateInputValue = (date: Date): string => {
+    const month = `${date.getMonth() + 1}`.padStart(2, "0");
+    const day = `${date.getDate()}`.padStart(2, "0");
+    return `${date.getFullYear()}-${month}-${day}`;
+  };
 
   const applyPreset = (preset: "DAY" | "WEEK" | "MONTH") => {
     const now = new Date();
@@ -105,6 +115,32 @@ export default function TradesPage() {
     setEndDate(today);
     setActivePreset("MONTH");
   };
+
+  const activeFilterCount =
+    (startDate || endDate ? 1 : 0) +
+    (strategyFilter ? 1 : 0) +
+    (instrumentFilter !== "ALL" ? 1 : 0) +
+    (statusFilter !== "ALL" ? 1 : 0) +
+    (mistakeOnly ? 1 : 0) +
+    (notesQuery.trim() ? 1 : 0);
+
+  const clearAllFilters = () => {
+    setStartDate("");
+    setEndDate("");
+    setNotesQuery("");
+    setMistakeOnly(false);
+    setStrategyFilter("");
+    setInstrumentFilter("ALL");
+    setStatusFilter("ALL");
+    setActivePreset("CUSTOM");
+  };
+
+  const rangeLabel =
+    startDate || endDate
+      ? `${startDate ? formatDateIndian(startDate) : "Beginning"} → ${
+          endDate ? formatDateIndian(endDate) : "Today"
+        }`
+      : "All time";
 
   const filteredTrades = useMemo(() => {
     const filtered = applyTradeFilters(trades, {
@@ -153,7 +189,9 @@ export default function TradesPage() {
     );
     const grossPnl = netPnl + totalCharges;
     const winners = filteredTrades.filter((trade) => trade.netPnl >= 0).length;
+    const losers = totalTrades - winners;
     const winRate = totalTrades ? (winners / totalTrades) * 100 : 0;
+    const avgCharges = totalTrades ? totalCharges / totalTrades : 0;
     const tradesWithNotes = filteredTrades.filter(
       (trade) => (trade.notes ?? "").trim().length > 0,
     ).length;
@@ -161,27 +199,31 @@ export default function TradesPage() {
       (trade) => trade.mistakeType && trade.mistakeType !== "NONE",
     ).length;
 
-    const mistakeCounts = filteredTrades.reduce<Record<string, number>>(
-      (acc, trade) => {
-        const key = trade.mistakeType;
-        if (!key || key === "NONE") return acc;
-        acc[key] = (acc[key] ?? 0) + 1;
-        return acc;
-      },
-      {},
-    );
+    const mistakeCounts = filteredTrades.reduce<
+      Partial<Record<MistakeType, number>>
+    >((acc, trade) => {
+      const key = trade.mistakeType;
+      if (!key || key === "NONE") return acc;
+      acc[key] = (acc[key] ?? 0) + 1;
+      return acc;
+    }, {});
 
     const topMistake =
-      Object.entries(mistakeCounts).sort((a, b) => b[1] - a[1])[0]?.[0] ?? "-";
+      (Object.entries(mistakeCounts).sort(
+        (a, b) => (b[1] ?? 0) - (a[1] ?? 0),
+      )[0]?.[0] as MistakeType | undefined) ?? null;
 
     return {
       totalTrades,
       netPnl,
       grossPnl,
       totalCharges,
+      avgCharges,
       totalInvestment,
       totalSellValue,
       winRate,
+      winners,
+      losers,
       tradesWithNotes,
       mistakeTrades,
       topMistake,
@@ -189,192 +231,293 @@ export default function TradesPage() {
   }, [filteredTrades]);
 
   return (
-    <section className="page">
-      <h2>Trades</h2>
-
-      <div className="filters-row">
-        <div className="quick-filter-row">
-          <button
-            type="button"
-            className={
-              activePreset === "DAY" ? "secondary active-pill" : "secondary"
-            }
-            onClick={() => applyPreset("DAY")}
-          >
-            Day
-          </button>
-          <button
-            type="button"
-            className={
-              activePreset === "WEEK" ? "secondary active-pill" : "secondary"
-            }
-            onClick={() => applyPreset("WEEK")}
-          >
-            Week
-          </button>
-          <button
-            type="button"
-            className={
-              activePreset === "MONTH" ? "secondary active-pill" : "secondary"
-            }
-            onClick={() => applyPreset("MONTH")}
-          >
-            Month
-          </button>
+    <section className="page trades-page">
+      <header className="trades-header">
+        <div className="trades-heading">
+          <h2>Trades</h2>
+          <p className="trades-subtitle">
+            <span className="trades-count">{filteredTrades.length}</span>
+            {filteredTrades.length === trades.length
+              ? " trades"
+              : ` of ${trades.length} trades`}
+            <span className="trades-dot">•</span>
+            {rangeLabel}
+          </p>
         </div>
+      </header>
 
-        <label>
-          Start Date
-          <input
-            type="date"
-            value={startDate}
-            onChange={(event) => {
-              setActivePreset("CUSTOM");
-              setStartDate(event.target.value);
-            }}
-          />
-        </label>
+      <div className="trades-toolbar">
+        <div className="toolbar-primary">
+          <div className="search-field">
+            <span className="search-icon" aria-hidden="true">
+              🔍
+            </span>
+            <input
+              type="text"
+              value={notesQuery}
+              onChange={(event) => setNotesQuery(event.target.value)}
+              placeholder="Search notes, entry, exit, lesson, tags"
+              aria-label="Search trades"
+            />
+            {notesQuery && (
+              <button
+                type="button"
+                className="search-clear"
+                onClick={() => setNotesQuery("")}
+                aria-label="Clear search"
+              >
+                ✕
+              </button>
+            )}
+          </div>
 
-        <label>
-          End Date
-          <input
-            type="date"
-            value={endDate}
-            onChange={(event) => {
-              setActivePreset("CUSTOM");
-              setEndDate(event.target.value);
-            }}
-          />
-        </label>
-
-        <label>
-          Notes Search
-          <input
-            type="text"
-            value={notesQuery}
-            onChange={(event) => setNotesQuery(event.target.value)}
-            placeholder="Search notes, entry, exit, lesson"
-          />
-        </label>
-
-        <label className="checkbox-label">
-          <input
-            type="checkbox"
-            checked={mistakeOnly}
-            onChange={(event) => setMistakeOnly(event.target.checked)}
-          />
-          Show Mistake Trades Only
-        </label>
-
-        <label>
-          Strategy
-          <select
-            value={strategyFilter}
-            onChange={(event) => setStrategyFilter(event.target.value)}
+          <div
+            className="segmented"
+            role="group"
+            aria-label="Quick date range"
           >
-            <option value="">All Strategies</option>
-            {strategies.map((strategy) => (
-              <option key={strategy.id} value={strategy.id}>
-                {strategy.name}
-              </option>
+            {DATE_PRESETS.map((preset) => (
+              <button
+                key={preset.key}
+                type="button"
+                className={
+                  activePreset === preset.key
+                    ? "segmented-btn is-active"
+                    : "segmented-btn"
+                }
+                aria-pressed={activePreset === preset.key}
+                onClick={() => applyPreset(preset.key)}
+              >
+                {preset.label}
+              </button>
             ))}
-          </select>
-        </label>
+          </div>
 
-        <label>
-          Instrument
           <select
-            value={instrumentFilter}
-            onChange={(event) =>
-              setInstrumentFilter(event.target.value as Instrument | "ALL")
-            }
-          >
-            <option value="ALL">All Instruments</option>
-            {instruments.map((item) => (
-              <option key={item.id} value={item.symbol}>
-                {item.name}
-              </option>
-            ))}
-          </select>
-        </label>
-
-        <label>
-          Status
-          <select
-            value={statusFilter}
-            onChange={(event) =>
-              setStatusFilter(event.target.value as TradeStatus | "ALL")
-            }
-          >
-            <option value="ALL">All Statuses</option>
-            <option value="SUCCESSFUL">Successful</option>
-            <option value="FAILED">Failed</option>
-          </select>
-        </label>
-
-        <label>
-          Sort by Date
-          <select
+            className="sort-select"
             value={dateSort}
             onChange={(event) =>
               setDateSort(event.target.value as "DESC" | "ASC")
             }
+            aria-label="Sort by date"
           >
-            <option value="DESC">Newest First</option>
-            <option value="ASC">Oldest First</option>
+            <option value="DESC">Newest first</option>
+            <option value="ASC">Oldest first</option>
           </select>
-        </label>
+
+          <button
+            type="button"
+            className={`filter-toggle${filtersOpen ? " is-open" : ""}`}
+            onClick={() => setFiltersOpen((open) => !open)}
+            aria-expanded={filtersOpen}
+          >
+            <span aria-hidden="true">⚙</span> Filters
+            {activeFilterCount > 0 && (
+              <span className="filter-count">{activeFilterCount}</span>
+            )}
+          </button>
+        </div>
+
+        {filtersOpen && (
+          <div className="toolbar-advanced">
+            <label>
+              Start Date
+              <input
+                type="date"
+                value={startDate}
+                onChange={(event) => {
+                  setActivePreset("CUSTOM");
+                  setStartDate(event.target.value);
+                }}
+              />
+            </label>
+
+            <label>
+              End Date
+              <input
+                type="date"
+                value={endDate}
+                onChange={(event) => {
+                  setActivePreset("CUSTOM");
+                  setEndDate(event.target.value);
+                }}
+              />
+            </label>
+
+            <label>
+              Strategy
+              <select
+                value={strategyFilter}
+                onChange={(event) => setStrategyFilter(event.target.value)}
+              >
+                <option value="">All Strategies</option>
+                {strategies.map((strategy) => (
+                  <option key={strategy.id} value={strategy.id}>
+                    {strategy.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <label>
+              Instrument
+              <select
+                value={instrumentFilter}
+                onChange={(event) =>
+                  setInstrumentFilter(event.target.value as Instrument | "ALL")
+                }
+              >
+                <option value="ALL">All Instruments</option>
+                {instruments.map((item) => (
+                  <option key={item.id} value={item.symbol}>
+                    {item.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <label>
+              Status
+              <select
+                value={statusFilter}
+                onChange={(event) =>
+                  setStatusFilter(event.target.value as TradeStatus | "ALL")
+                }
+              >
+                <option value="ALL">All Statuses</option>
+                <option value="SUCCESSFUL">Successful</option>
+                <option value="FAILED">Failed</option>
+              </select>
+            </label>
+
+            <label className="checkbox-label">
+              <input
+                type="checkbox"
+                checked={mistakeOnly}
+                onChange={(event) => setMistakeOnly(event.target.checked)}
+              />
+              Mistake trades only
+            </label>
+
+            <button
+              type="button"
+              className="clear-filters"
+              onClick={clearAllFilters}
+              disabled={activeFilterCount === 0}
+            >
+              Clear all
+            </button>
+          </div>
+        )}
       </div>
 
-      <div className="metrics-grid trades-summary-grid">
-        <article className="metric-card">
-          <span>Net P/L</span>
-          <strong className={summary.netPnl >= 0 ? "profit" : "loss"}>
+      <div className="kpi-grid">
+        <article
+          className={`kpi-card ${summary.netPnl >= 0 ? "tone-profit" : "tone-loss"}`}
+        >
+          <span className="kpi-label">Net P/L</span>
+          <strong
+            className={`kpi-value ${summary.netPnl >= 0 ? "profit" : "loss"}`}
+          >
             {formatCurrency(summary.netPnl)}
           </strong>
+          <span className="kpi-foot">
+            Gross {formatCurrency(summary.grossPnl)}
+          </span>
         </article>
-        <article className="metric-card">
-          <span>Win Rate</span>
-          <strong>{summary.winRate.toFixed(0)}%</strong>
+
+        <article className="kpi-card tone-accent">
+          <span className="kpi-label">Win Rate</span>
+          <strong className="kpi-value">{summary.winRate.toFixed(0)}%</strong>
+          <span className="kpi-bar" aria-hidden="true">
+            <span
+              className="kpi-bar-fill"
+              style={{
+                width: `${Math.min(100, Math.max(0, summary.winRate))}%`,
+              }}
+            />
+          </span>
         </article>
-        <article className="metric-card">
-          <span>Total Investment</span>
-          <strong>{formatCurrency(summary.totalInvestment)}</strong>
+
+        <article className="kpi-card">
+          <span className="kpi-label">Total Trades</span>
+          <strong className="kpi-value">{summary.totalTrades}</strong>
+          <span className="kpi-foot">
+            <span className="profit">{summary.winners} win</span>
+            <span className="kpi-foot-sep">/</span>
+            <span className="loss">{summary.losers} loss</span>
+          </span>
         </article>
-        <article className="metric-card">
-          <span>Total Sell Value</span>
-          <strong>{formatCurrency(summary.totalSellValue)}</strong>
-        </article>
-        <article className="metric-card">
-          <span>Gross P/L (Before Charges)</span>
-          <strong className={summary.grossPnl >= 0 ? "profit" : "loss"}>
-            {formatCurrency(summary.grossPnl)}
+
+        <article className="kpi-card">
+          <span className="kpi-label">Total Charges</span>
+          <strong className="kpi-value">
+            {formatCurrency(summary.totalCharges)}
           </strong>
+          <span className="kpi-foot">
+            Avg {formatCurrency(summary.avgCharges)} / trade
+          </span>
         </article>
-        <article className="metric-card">
-          <span>Total Charges</span>
-          <strong>{formatCurrency(summary.totalCharges)}</strong>
-        </article>
-        <article className="metric-card">
-          <span>Total Trades</span>
-          <strong>{summary.totalTrades}</strong>
-        </article>
-        <article className="metric-card">
-          <span>Trades With Notes</span>
-          <strong>{summary.tradesWithNotes}</strong>
-        </article>
-        <article className="metric-card">
-          <span>Mistake Trades</span>
-          <strong>{summary.mistakeTrades}</strong>
-        </article>
-        <article className="metric-card">
-          <span>Top Mistake</span>
-          <strong>{summary.topMistake}</strong>
-        </article>
+      </div>
+
+      <div className="stat-strip">
+        <div className="stat-item">
+          <span className="stat-label">Gross P/L</span>
+          <span
+            className={`stat-value ${summary.grossPnl >= 0 ? "profit" : "loss"}`}
+          >
+            {formatCurrency(summary.grossPnl)}
+          </span>
+        </div>
+        <div className="stat-item">
+          <span className="stat-label">Investment</span>
+          <span className="stat-value">
+            {formatCurrency(summary.totalInvestment)}
+          </span>
+        </div>
+        <div className="stat-item">
+          <span className="stat-label">Sell Value</span>
+          <span className="stat-value">
+            {formatCurrency(summary.totalSellValue)}
+          </span>
+        </div>
+        <div className="stat-item">
+          <span className="stat-label">With Notes</span>
+          <span className="stat-value">{summary.tradesWithNotes}</span>
+        </div>
+        <div className="stat-item">
+          <span className="stat-label">Mistake Trades</span>
+          <span
+            className={`stat-value${summary.mistakeTrades > 0 ? " warn" : ""}`}
+          >
+            {summary.mistakeTrades}
+          </span>
+        </div>
+        <div className="stat-item">
+          <span className="stat-label">Top Mistake</span>
+          <span className="stat-value">
+            {summary.topMistake ? MISTAKE_LABELS[summary.topMistake] : "—"}
+          </span>
+        </div>
       </div>
 
       {filteredTrades.length === 0 ? (
-        <div className="trades-empty">No trades for the selected filters.</div>
+        <div className="trades-empty">
+          <span className="trades-empty-icon" aria-hidden="true">
+            📭
+          </span>
+          <h3>No trades match these filters</h3>
+          <p>Try widening the date range or clearing the active filters.</p>
+          {activeFilterCount > 0 && (
+            <button
+              type="button"
+              className="secondary"
+              onClick={clearAllFilters}
+            >
+              Clear all filters
+            </button>
+          )}
+        </div>
       ) : (
         <div className="trades-list">
           {filteredTrades.map((trade) => (
@@ -416,7 +559,6 @@ function TradeCard({
   readonly onEdit: () => void;
   readonly onDelete: () => void;
 }) {
-  const rMultiple = calculateRMultiple(trade);
   const isLong = trade.side !== "SELL";
   const isWin = trade.netPnl >= 0;
   const entryTime = toTimeInputValue(trade.entryTime);
@@ -428,6 +570,7 @@ function TradeCard({
     .filter(Boolean)
     .join(" ");
   const invested = trade.buyPrice * trade.quantity;
+  const returnPct = invested > 0 ? (trade.netPnl / invested) * 100 : null;
   const hasJournal =
     !!trade.entryReason ||
     !!trade.exitReason ||
@@ -435,7 +578,7 @@ function TradeCard({
     !!trade.screenshot;
 
   return (
-    <article className="trade-card">
+    <article className={`trade-card ${isWin ? "is-win" : "is-loss"}`}>
       <header className="trade-card-head">
         <div className="trade-ident">
           <div className="trade-symbol-row">
@@ -448,13 +591,19 @@ function TradeCard({
             )}
           </div>
           <div className="trade-submeta">
-            <span>📅 {formatDateIndian(trade.tradeDate)}</span>
+            <span className="meta-item">
+              <span aria-hidden="true">📅</span>{" "}
+              {formatDateIndian(trade.tradeDate)}
+            </span>
             {(entryTime || exitTime) && (
-              <span>
-                🕒 {entryTime || "--:--"} → {exitTime || "--:--"}
+              <span className="meta-item">
+                <span aria-hidden="true">🕒</span> {entryTime || "--:--"} →{" "}
+                {exitTime || "--:--"}
               </span>
             )}
-            <span>🎯 {strategyName}</span>
+            <span className="meta-item">
+              <span aria-hidden="true">🎯</span> {strategyName}
+            </span>
           </div>
         </div>
         <div className="trade-head-right">
@@ -464,6 +613,11 @@ function TradeCard({
           <strong className={`trade-pnl ${isWin ? "profit" : "loss"}`}>
             {formatCurrency(trade.netPnl)}
           </strong>
+          {returnPct !== null && (
+            <span className={`trade-pnl-pct ${isWin ? "profit" : "loss"}`}>
+              {formatPercent(returnPct)}
+            </span>
+          )}
         </div>
       </header>
 
@@ -471,15 +625,6 @@ function TradeCard({
         <Metric label="Entry" value={formatPrice(trade.buyPrice)} />
         <Metric label="Exit" value={formatPrice(trade.sellPrice)} />
         <Metric label="Qty" value={trade.quantity} />
-        <Metric label="Stop" value={formatPrice(trade.stopLoss)} />
-        <Metric label="Target" value={formatPrice(trade.target)} />
-        <Metric
-          label="R Multiple"
-          value={rMultiple === null ? "-" : `${rMultiple.toFixed(2)}R`}
-          tone={
-            rMultiple === null ? undefined : rMultiple >= 0 ? "profit" : "loss"
-          }
-        />
         <Metric label="Charges" value={formatCurrency(trade.charges)} />
         <Metric label="Invested" value={formatCurrency(invested)} />
       </div>
