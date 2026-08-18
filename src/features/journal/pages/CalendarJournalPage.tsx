@@ -48,10 +48,13 @@ export default function CalendarJournalPage() {
 
   const handleNoteChange = useCallback((note: string) => {
     if (!selectedDate) return;
-    const next = { ...dayNotes, [selectedDate]: note };
-    setDayNotes(next);
-    journalService.saveDayNotes(next);
-  }, [selectedDate, dayNotes]);
+    const date = selectedDate; // capture at call time
+    setDayNotes(prev => {
+      const next = { ...prev, [date]: note };
+      journalService.saveDayNotes(next);
+      return next;
+    });
+  }, [selectedDate]);
 
   const handleTradeClick = useCallback((tradeId: string) => {
     startEditTrade(tradeId);

@@ -31,6 +31,9 @@ export default function CalendarListView({
             key={day.date}
             className={`cal-list-row${selectedDate === day.date ? " selected" : ""}`}
             onClick={() => onDayClick(day.date)}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onDayClick(day.date); } }}
           >
             <span className="cal-list-date">{formatDateLabel(day.date)}</span>
             <span className="cal-list-count">{day.trades} trade{day.trades !== 1 ? "s" : ""}</span>

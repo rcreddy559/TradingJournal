@@ -66,7 +66,11 @@ export default function MonthCalendar({
             .filter(Boolean).join(" ");
 
           return (
-            <div key={dateStr} className={cls} onClick={() => onDayClick(dateStr)}>
+            <div key={dateStr} className={cls}
+              onClick={() => onDayClick(dateStr)}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onDayClick(dateStr); } }}>
               <div className="day-num">{dayNum}</div>
               {data && (
                 <>

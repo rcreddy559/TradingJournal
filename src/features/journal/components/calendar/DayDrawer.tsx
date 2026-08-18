@@ -48,6 +48,13 @@ export default function DayDrawer({
     return () => window.removeEventListener("keydown", handler);
   }, [onClose]);
 
+  // Cleanup debounce timer on unmount
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
+  }, []);
+
   return (
     <>
       <div className="cal-drawer-backdrop" onClick={onClose} />
