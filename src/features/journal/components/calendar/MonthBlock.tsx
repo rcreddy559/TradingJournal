@@ -1,6 +1,6 @@
 // src/features/journal/components/calendar/MonthBlock.tsx
 import { DailyPnl } from "../../lib/calculations";
-import { buildMonthGrid, computeDayColorClass } from "../../lib/calendarUtils";
+import { buildDayLabel, buildMonthGrid, resolveDayStateClass } from "../../lib/calendarUtils";
 import DayCell from "./DayCell";
 import "./calendar.css";
 
@@ -42,9 +42,7 @@ export default function MonthBlock({
           }
           const dateStr = `${year}-${pad(month + 1)}-${pad(dayNum)}`;
           const data = dayMap.get(dateStr);
-          const colorClass = data
-            ? computeDayColorClass(data.pnl, maxAbsPnl, false)
-            : "";
+          const colorClass = resolveDayStateClass(data, maxAbsPnl);
           return (
             <DayCell
               key={dateStr}
@@ -53,6 +51,7 @@ export default function MonthBlock({
               isToday={dateStr === todayStr}
               isSelected={dateStr === selectedDate}
               hasNote={!!dayNotes[dateStr]}
+              label={buildDayLabel(dateStr, data)}
               onClick={() => onDayClick(dateStr)}
             />
           );

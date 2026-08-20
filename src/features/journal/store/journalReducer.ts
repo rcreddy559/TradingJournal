@@ -47,6 +47,11 @@ export const journalReducer = (
         ...state,
         strategies: [action.payload, ...state.strategies],
       };
+    case "ADD_STRATEGIES":
+      return {
+        ...state,
+        strategies: [...action.payload, ...state.strategies],
+      };
     case "UPDATE_STRATEGY":
       return {
         ...state,

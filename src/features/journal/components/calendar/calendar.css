@@ -1,15 +1,131 @@
 /* src/features/journal/components/calendar/calendar.css */
 
-/* ── Colour classes ─────────────────────────────────────── */
-.profit-1 { background: rgba(50, 210, 150, 0.22); color: var(--green); }
-.profit-2 { background: rgba(50, 210, 150, 0.42); color: #fff; }
-.profit-3 { background: rgba(50, 210, 150, 0.65); color: #fff; }
-.profit-4 { background: var(--green); color: #052e1c; font-weight: 700; }
-.loss-1   { background: rgba(255, 106, 106, 0.22); color: var(--red); }
-.loss-2   { background: rgba(255, 106, 106, 0.42); color: #fff; }
-.loss-3   { background: rgba(255, 106, 106, 0.65); color: #fff; }
-.loss-4   { background: var(--red); color: #fff; font-weight: 700; }
-.unrealised { background: rgba(139, 92, 246, 0.38); color: #c4b5fd; }
+/* ── Colour tokens ──────────────────────────────────────────
+   Kept theme-aware because the shades are painted over a light
+   panel in light mode and a dark panel in dark mode.          */
+:root {
+  --cal-green-rgb: 50, 210, 150;
+  --cal-red-rgb: 255, 106, 106;
+  --cal-band-text: #ffffff;
+  --cal-profit-solid-text: #052e1c;
+  --cal-loss-solid-text: #3d0808;
+  --cal-no-trade-bg: rgba(142, 164, 181, 0.14);
+  --cal-no-trade-text: rgba(142, 164, 181, 0.85);
+  --cal-breakeven-bg: rgba(142, 164, 181, 0.42);
+  --cal-breakeven-text: #e9f0f5;
+}
+
+:root[data-theme="light"] {
+  --cal-green-rgb: 18, 138, 95;
+  --cal-red-rgb: 210, 63, 63;
+  --cal-band-text: #10222e;
+  --cal-profit-solid-text: #ffffff;
+  --cal-loss-solid-text: #ffffff;
+  --cal-no-trade-bg: rgba(90, 107, 120, 0.13);
+  --cal-no-trade-text: rgba(90, 107, 120, 0.9);
+  --cal-breakeven-bg: rgba(90, 107, 120, 0.34);
+  --cal-breakeven-text: #17242e;
+}
+
+/* ── Colour classes ─────────────────────────────────────────
+   Scoped to the cell classes on purpose: a bare `.profit-4`
+   ties with `.cal-day` on specificity and loses to it on source
+   order, which silently painted every cell the panel colour.  */
+.cal-day.profit-1,
+.cal-large-day.profit-1 {
+  background: rgba(var(--cal-green-rgb), 0.32);
+  color: var(--green);
+  font-weight: 600;
+}
+.cal-day.profit-2,
+.cal-large-day.profit-2 {
+  background: rgba(var(--cal-green-rgb), 0.52);
+  color: var(--cal-band-text);
+  font-weight: 600;
+}
+.cal-day.profit-3,
+.cal-large-day.profit-3 {
+  background: rgba(var(--cal-green-rgb), 0.74);
+  color: var(--cal-band-text);
+  font-weight: 600;
+}
+.cal-day.profit-4,
+.cal-large-day.profit-4 {
+  background: rgb(var(--cal-green-rgb));
+  color: var(--cal-profit-solid-text);
+  font-weight: 700;
+}
+
+.cal-day.loss-1,
+.cal-large-day.loss-1 {
+  background: rgba(var(--cal-red-rgb), 0.32);
+  color: var(--red);
+  font-weight: 600;
+}
+.cal-day.loss-2,
+.cal-large-day.loss-2 {
+  background: rgba(var(--cal-red-rgb), 0.52);
+  color: var(--cal-band-text);
+  font-weight: 600;
+}
+.cal-day.loss-3,
+.cal-large-day.loss-3 {
+  background: rgba(var(--cal-red-rgb), 0.74);
+  color: var(--cal-band-text);
+  font-weight: 600;
+}
+.cal-day.loss-4,
+.cal-large-day.loss-4 {
+  background: rgb(var(--cal-red-rgb));
+  color: var(--cal-loss-solid-text);
+  font-weight: 700;
+}
+
+/* Traded, but finished exactly flat — distinct from an untraded day. */
+.cal-day.breakeven,
+.cal-large-day.breakeven {
+  background: var(--cal-breakeven-bg);
+  color: var(--cal-breakeven-text);
+  font-weight: 600;
+}
+
+/* No trades on this date. */
+.cal-day.no-trade,
+.cal-large-day.no-trade {
+  background: var(--cal-no-trade-bg);
+  color: var(--cal-no-trade-text);
+}
+
+.cal-day.unrealised,
+.cal-large-day.unrealised {
+  background: rgba(139, 92, 246, 0.38);
+  color: #c4b5fd;
+}
+
+/* Colour-blind support: the P&L sign is also encoded as a shape. */
+.cal-large-day:is(.profit-1, .profit-2, .profit-3, .profit-4) .day-pnl::before {
+  content: "▲ ";
+  font-size: 0.62rem;
+}
+.cal-large-day:is(.loss-1, .loss-2, .loss-3, .loss-4) .day-pnl::before {
+  content: "▼ ";
+  font-size: 0.62rem;
+}
+
+/* Inner text rides on the cell colour instead of the muted default, which
+   would otherwise be unreadable on the solid shade-4 backgrounds. */
+.cal-large-day:is(
+  .profit-1, .profit-2, .profit-3, .profit-4,
+  .loss-1, .loss-2, .loss-3, .loss-4, .breakeven
+) :is(.day-num, .day-count, .day-pnl) {
+  color: inherit;
+}
+.cal-large-day:is(
+  .profit-1, .profit-2, .profit-3, .profit-4,
+  .loss-1, .loss-2, .loss-3, .loss-4, .breakeven
+) :is(.day-num, .day-count) {
+  opacity: 0.82;
+}
 
 /* ── Summary strip ──────────────────────────────────────── */
 .cal-summary-strip {

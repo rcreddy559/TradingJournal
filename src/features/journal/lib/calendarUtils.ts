@@ -1,4 +1,4 @@
-import { DailyPnl } from "./calculations";
+import { DailyPnl, formatCurrency } from "./calculations";
 
 /** O(1) lookup of a day's data by YYYY-MM-DD key. */
 export const buildDayMap = (daily: DailyPnl[]): Map<string, DailyPnl> => {
@@ -26,6 +26,35 @@ export const computeDayColorClass = (
   const ratio = Math.abs(pnl) / maxAbsPnl;
   const shade = ratio <= 0.25 ? 1 : ratio <= 0.5 ? 2 : ratio <= 0.75 ? 3 : 4;
   return pnl > 0 ? `profit-${shade}` : `loss-${shade}`;
+};
+
+/**
+ * Resolves the complete state class for a day cell, so every date falls into
+ * exactly one visual bucket: green (profit), red (loss), neutral (traded but
+ * flat) or grey (no trade). `computeDayColorClass` only grades intensity and
+ * returns "" for both a flat day and a day that was never traded, which made
+ * those two cases indistinguishable.
+ */
+export const resolveDayStateClass = (
+  day: DailyPnl | undefined,
+  maxAbsPnl: number,
+  hasUnrealised = false,
+): string => {
+  if (!day || day.trades === 0) return "no-trade";
+  if (hasUnrealised) return "unrealised";
+  if (day.pnl === 0) return "breakeven";
+  return computeDayColorClass(day.pnl, maxAbsPnl, false) || "breakeven";
+};
+
+/**
+ * Human-readable summary of a day, used as the cell tooltip/aria-label so the
+ * colour is never the only carrier of meaning.
+ */
+export const buildDayLabel = (dateStr: string, day: DailyPnl | undefined): string => {
+  if (!day || day.trades === 0) return `${dateStr} — no trades`;
+  const outcome = day.pnl > 0 ? "profit" : day.pnl < 0 ? "loss" : "break-even";
+  const count = `${day.trades} trade${day.trades !== 1 ? "s" : ""}`;
+  return `${dateStr} — ${outcome} ${formatCurrency(day.pnl)}, ${count}`;
 };
 
 /**

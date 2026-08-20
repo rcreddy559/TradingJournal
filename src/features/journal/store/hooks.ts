@@ -78,6 +78,18 @@ export const useJournalActions = () => {
     dispatch({ type: "ADD_STRATEGY", payload: strategy });
   };
 
+  /**
+   * Adds several strategies in a single persisted write. Calling
+   * `createStrategy` in a loop would save every entry against the same stale
+   * snapshot, so only the last one would survive a reload.
+   */
+  const createStrategies = (newStrategies: Strategy[]) => {
+    if (newStrategies.length === 0) return;
+    const nextStrategies = [...newStrategies, ...state.strategies];
+    journalService.saveStrategies(nextStrategies);
+    dispatch({ type: "ADD_STRATEGIES", payload: newStrategies });
+  };
+
   const updateStrategy = (strategy: Strategy) => {
     const nextStrategies = state.strategies.map((item) =>
       item.id === strategy.id ? strategy : item,
@@ -430,6 +442,7 @@ export const useJournalActions = () => {
     updateTrade,
     deleteTrade,
     createStrategy,
+    createStrategies,
     updateStrategy,
     deleteStrategy,
     deleteStrategyWithReassign,

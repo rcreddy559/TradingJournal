@@ -5,7 +5,12 @@ node_modules/
 dist/
 coverage/
 
+# local caches
+.vite/
+.eslintcache
+
 # logs
+*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
@@ -16,6 +21,9 @@ pnpm-debug.log*
 .env.*
 !.env.example
 env/.env.development.local
+
+# local overrides (Vite convention)
+*.local
 
 # TypeScript
 *.tsbuildinfo
@@ -31,6 +39,9 @@ env/.env.development.local
 # OS files
 .DS_Store
 Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
 
 # brainstorm session artifacts
 .superpowers/

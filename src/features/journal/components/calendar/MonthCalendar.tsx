@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { DailyPnl, formatCurrency } from "../../lib/calculations";
-import { buildMonthGrid, computeDayColorClass } from "../../lib/calendarUtils";
+import { buildDayLabel, buildMonthGrid, resolveDayStateClass } from "../../lib/calendarUtils";
 import "./calendar.css";
 
 const MONTH_NAMES = [
@@ -57,19 +57,21 @@ export default function MonthCalendar({
           }
           const dateStr = `${year}-${pad(month + 1)}-${pad(dayNum)}`;
           const data = dayMap.get(dateStr);
-          const colorClass = data
-            ? computeDayColorClass(data.pnl, maxAbsPnl, false)
-            : "";
+          const colorClass = resolveDayStateClass(data, maxAbsPnl);
           const isToday = dateStr === todayStr;
           const isSelected = dateStr === selectedDate;
           const cls = ["cal-large-day", colorClass, isToday ? "today" : "", isSelected ? "selected" : ""]
             .filter(Boolean).join(" ");
+          const label = buildDayLabel(dateStr, data);
 
           return (
             <div key={dateStr} className={cls}
               onClick={() => onDayClick(dateStr)}
               role="button"
               tabIndex={0}
+              title={label}
+              aria-label={label}
+              aria-pressed={isSelected}
               onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onDayClick(dateStr); } }}>
               <div className="day-num">{dayNum}</div>
               {data && (

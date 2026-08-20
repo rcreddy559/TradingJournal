@@ -7,6 +7,7 @@ interface DayCellProps {
   isToday: boolean;
   isSelected: boolean;
   hasNote: boolean;
+  label: string;
   onClick: () => void;
 }
 
@@ -16,6 +17,7 @@ export default function DayCell({
   isToday,
   isSelected,
   hasNote,
+  label,
   onClick,
 }: DayCellProps) {
   const cls = ["cal-day", colorClass, isToday ? "today" : "", isSelected ? "selected" : ""]
@@ -24,6 +26,9 @@ export default function DayCell({
 
   return (
     <div className={cls} onClick={onClick} role="button" tabIndex={0}
+      title={label}
+      aria-label={label}
+      aria-pressed={isSelected}
       onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onClick(); } }}>
       {dayNum}
       {hasNote && <span className="note-dot" aria-hidden="true" />}

@@ -34,6 +34,7 @@ export type JournalAction =
   | { type: "UPDATE_TRADE"; payload: Trade }
   | { type: "DELETE_TRADE"; payload: string }
   | { type: "ADD_STRATEGY"; payload: Strategy }
+  | { type: "ADD_STRATEGIES"; payload: Strategy[] }
   | { type: "UPDATE_STRATEGY"; payload: Strategy }
   | { type: "DELETE_STRATEGY"; payload: string }
   | { type: "ADD_INSTRUMENT"; payload: InstrumentDef }

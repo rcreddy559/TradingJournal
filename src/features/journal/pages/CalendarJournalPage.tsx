@@ -13,6 +13,9 @@ import "../components/calendar/calendar.css";
 
 type CalViewMode = "year" | "month" | "list";
 
+/** Must stay in sync with the .profit-N / .loss-N alphas in calendar.css. */
+const SHADE_ALPHAS = [0.32, 0.52, 0.74, 1];
+
 const todayStr = (): string => new Date().toISOString().slice(0, 10);
 
 export default function CalendarJournalPage() {
@@ -138,9 +141,9 @@ export default function CalendarJournalPage() {
         <div className="cal-legend-group">
           <span>Min loss</span>
           <div className="cal-swatch-row">
-            {[0.22, 0.42, 0.65, 1].map((a, i) => (
+            {SHADE_ALPHAS.map((a, i) => (
               <div key={i} className="cal-swatch"
-                style={{ background: `rgba(255,106,106,${a})` }} />
+                style={{ background: `rgba(var(--cal-red-rgb), ${a})` }} />
             ))}
           </div>
           <span>Max loss</span>
@@ -148,12 +151,20 @@ export default function CalendarJournalPage() {
         <div className="cal-legend-group">
           <span>Min profit</span>
           <div className="cal-swatch-row">
-            {[0.22, 0.42, 0.65, 1].map((a, i) => (
+            {SHADE_ALPHAS.map((a, i) => (
               <div key={i} className="cal-swatch"
-                style={{ background: a === 1 ? "var(--green)" : `rgba(50,210,150,${a})` }} />
+                style={{ background: `rgba(var(--cal-green-rgb), ${a})` }} />
             ))}
           </div>
           <span>Max profit</span>
+        </div>
+        <div className="cal-legend-group">
+          <div className="cal-swatch" style={{ background: "var(--cal-breakeven-bg)" }} />
+          <span>Break-even</span>
+        </div>
+        <div className="cal-legend-group">
+          <div className="cal-swatch" style={{ background: "var(--cal-no-trade-bg)" }} />
+          <span>No trade</span>
         </div>
         <div className="cal-legend-group">
           <div className="cal-swatch" style={{ background: "rgba(139,92,246,0.38)" }} />
@@ -161,7 +172,7 @@ export default function CalendarJournalPage() {
         </div>
         <div className="cal-legend-group">
           <div className="cal-swatch"
-            style={{ boxShadow: "0 0 0 2px var(--accent)", background: "var(--panel)" }} />
+            style={{ boxShadow: "0 0 0 2px var(--accent)", background: "var(--cal-no-trade-bg)" }} />
           <span>Today</span>
         </div>
       </div>
