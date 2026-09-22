@@ -71,6 +71,7 @@ export default function AddTradePage() {
   const [form, setForm] = useState({
     tradeDate: nowDate,
     instrument: initialInstrument as Trade["instrument"],
+    quantity: getQuantityForSymbol(instruments, initialInstrument as Trade["instrument"]),
     strikePrice: "",
     optionType: "CE" as Trade["optionType"],
     side: "BUY" as TradeSide,
@@ -94,16 +95,11 @@ export default function AddTradePage() {
     setForm((prev) => ({ ...prev, [key]: value }));
 
   const {
-    tradeDate, instrument, strikePrice, optionType, side,
+    tradeDate, instrument, quantity, strikePrice, optionType, side,
     entryTime, exitTime, buyPrice, sellPrice, charges,
     strategyId, notes, emotionBefore, emotionAfter, mistakeType,
     executionQuality, confidenceScore, entryReason, reasonCategory,
   } = form;
-
-  const quantity = useMemo(
-    () => getQuantityForSymbol(instruments, instrument),
-    [instruments, instrument],
-  );
 
   // Inline instrument management (dynamic CRUD from within the Add Trade form).
   const [uiState, setUiState] = useState({
@@ -126,6 +122,7 @@ export default function AddTradePage() {
       ...prev,
       tradeDate: editingTrade.tradeDate,
       instrument: editingTrade.instrument,
+      quantity: String(editingTrade.quantity ?? getQuantityForSymbol(instruments, editingTrade.instrument)),
       strikePrice: editingTrade.strikePrice ? String(editingTrade.strikePrice) : "",
       optionType: editingTrade.optionType ?? "CE",
       side: editingTrade.side ?? "BUY",
@@ -234,9 +231,11 @@ export default function AddTradePage() {
   ]);
 
   const resetForm = () => {
+    const defaultInst = instruments[0]?.symbol ?? "";
     setForm({
       tradeDate: nowDate,
-      instrument: instruments[0]?.symbol ?? "",
+      instrument: defaultInst,
+      quantity: getQuantityForSymbol(instruments, defaultInst),
       strikePrice: "",
       optionType: "CE",
       side: "BUY",
@@ -307,7 +306,11 @@ export default function AddTradePage() {
         createdAt: new Date().toISOString(),
       };
       createInstrument(created);
-      setField("instrument", created.symbol);
+      setForm((prev) => ({
+        ...prev,
+        instrument: created.symbol,
+        quantity: getQuantityForSymbol([...instruments, created], created.symbol),
+      }));
     }
     resetInstrumentDraft();
   };
@@ -344,7 +347,12 @@ export default function AddTradePage() {
       const fallback = instruments.find(
         (candidate) => candidate.id !== item.id,
       );
-      setField("instrument", fallback?.symbol ?? "");
+      const fallbackSymbol = fallback?.symbol ?? "";
+      setForm((prev) => ({
+        ...prev,
+        instrument: fallbackSymbol,
+        quantity: getQuantityForSymbol(instruments, fallbackSymbol),
+      }));
     }
   };
 
@@ -516,9 +524,14 @@ export default function AddTradePage() {
                 <span className="field-caption">Symbol *</span>
                 <select
                   value={instrument}
-                  onChange={(event) =>
-                    setField("instrument", event.target.value as Trade["instrument"])
-                  }
+                  onChange={(event) => {
+                    const nextInstrument = event.target.value as Trade["instrument"];
+                    setForm((prev) => ({
+                      ...prev,
+                      instrument: nextInstrument,
+                      quantity: getQuantityForSymbol(instruments, nextInstrument),
+                    }));
+                  }}
                 >
                   {instruments.length === 0 && (
                     <option value="">No instruments — add one</option>
@@ -543,8 +556,10 @@ export default function AddTradePage() {
                 <span className="field-caption">Qty *</span>
                 <input
                   type="number"
+                  min="1"
+                  step="1"
                   value={quantity}
-                  readOnly
+                  onChange={(event) => setField("quantity", event.target.value)}
                   placeholder="10"
                   required
                 />
